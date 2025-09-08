@@ -4,9 +4,8 @@ This README would normally document whatever steps are necessary to get your app
 
 ### What is this repository for? ###
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+* A web-based Student Information System (SSIS) that allows administrators and staff to manage student records efficiently. This project is a continuation of the desktop version, redesigned for accessibility, scalability, and ease of use through a browser interface.
+* [Bitbucket Repository](https://bitbucket.org/operator_syn/ssis-web-application-version/src/main/)
 
 ### How do I get set up? ###
 
