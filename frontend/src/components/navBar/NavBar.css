@@ -1,0 +1,47 @@
+.navbar {
+    background: rgba(28, 87, 137, 0.65);
+}
+
+.navbar .nav-link,
+.navbar .navbar-brand {
+    font-size: 1.25rem;
+    color: rgb(227, 242, 253);
+    font-weight: bold;
+}
+
+.navbar .navbar-brand {
+    margin: 0;
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    /* Simulated text outline */
+    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black,
+        0.5px 0.5px 0 black;
+}
+
+.nav-item {
+    cursor: pointer;
+    border: none;
+
+    /* Simulated text outline */
+    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black,
+        0.5px 0.5px 0 black;
+}
+
+.navbar .nav-link {
+    transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+
+.navbar .nav-link.active {
+    color: #FFFF00
+}
+
+.navbar .nav-link:hover {
+    color: #FFD900;
+    /* slightly darker gold for hover */
+}
+
+@media (max-width: 1200px) {
+    .navbar .navbar-brand {
+        padding: 0.5rem 0.0rem;
+    }
+}
