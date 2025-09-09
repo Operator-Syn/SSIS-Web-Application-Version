@@ -1,4 +1,5 @@
 import type { FC } from "react";
+import StudentData from "../components/studentDataInformation/StudentData";
 
 export const brandName = "Lupinbridge Student Information System";
 
@@ -14,7 +15,8 @@ export interface NavLinkItem {
 }
 
 export const navLinks: NavLinkItem[] = [
-    { name: "Student Data Information", path: "/student-information", component: null },
+    {name: "Homepage", path: "/", component: null},
+    { name: "Student Data Information", path: "/student-information", component: StudentData },
     { name: "Enrollment Forms", path: "/forms", component: null },
     { name: "College Management", path: "/management", component: null },
 ];

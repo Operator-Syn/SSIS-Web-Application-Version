@@ -53,7 +53,7 @@ export default function NavBar({ brandName, links }: NavBarProps) {
 
 
     return (
-        <nav className="navbar fixed-top navbar-expand-lg">
+        <nav className="navbar fixed-top navbar-expand-xl glass">
             <div className="container-fluid">
                 <Link className="navbar-brand" to="/">{brandName}</Link>
 
