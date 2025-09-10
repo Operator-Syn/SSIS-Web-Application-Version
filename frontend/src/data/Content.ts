@@ -1,7 +1,19 @@
 import type { FC } from "react";
 import StudentData from "../components/studentDataInformation/StudentData";
-
+import LogoImage from "../assets/Logo.png";
 export const brandName = "Lupinbridge Student Information System";
+
+
+// Logo interface (for type safety)
+export interface NavBarBrandProps {
+    logoSrc?: string;   // optional
+    logoAlt?: string;   // optional
+}
+
+// Default logo config (can be empty if no logo)
+export const Logo: NavBarBrandProps = {
+    logoSrc: LogoImage,
+};
 
 export interface NavBarProps {
     brandName: string;
