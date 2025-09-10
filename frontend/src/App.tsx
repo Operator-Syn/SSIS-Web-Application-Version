@@ -2,7 +2,6 @@ import { Routes, Route } from "react-router-dom";
 import { Fragment } from 'react';
 import NavBar from "./components/navBar/NavBar";
 import { navLinks as NavLinks, brandName as BrandName } from "./data/Content";
-import WorkingArea from "./components/WorkingArea";
 import "./App.css";
 
 export default function App() {
@@ -10,18 +9,18 @@ export default function App() {
     <Fragment>
       <NavBar brandName={BrandName} links={NavLinks} />
       <Routes>
-        {NavLinks.map((link) => (
-          <Route
-            key={link.path}
-            path={link.path}
-            element={
-              <WorkingArea>
-                {link.component && <link.component />}
-              </WorkingArea>
-            }
-          />
-        ))}
+        {NavLinks.map((link) => {
+          const Component = link.component;
+          return (
+            <Route
+              key={link.path}
+              path={link.path}
+              element={Component ? <Component /> : null}
+            />
+          );
+        })}
       </Routes>
+
     </Fragment>
 
   );

@@ -40,7 +40,7 @@
     /* slightly darker gold for hover */
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
     .navbar .navbar-brand {
         padding: 0.5rem 0.0rem;
     }

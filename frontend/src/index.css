@@ -1,4 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Geologica:wght@100..900&display=swap');
+
 * {
+    font-family: "Geologica", sans-serif;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -19,11 +22,9 @@ body {
     padding-bottom: 4rem;
     padding-left: 3rem;
     padding-right: 3rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: grid;
+    place-items: center;
     min-height: 100vh;
-    overflow-y: auto;
 }
 
 .glass {
