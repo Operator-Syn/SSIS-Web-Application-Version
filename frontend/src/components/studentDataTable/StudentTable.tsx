@@ -1,6 +1,7 @@
 import { useReactTable, flexRender, getCoreRowModel, getPaginationRowModel } from "@tanstack/react-table";
 import { useState } from "react";
 import { students as tableData, studentColumns as tableColumnData} from "../../data/Content";
+import { ColumnResizer } from "./ColumnResizer";
 import "./StudentTable.css";
 
 export default function StudentTable() {
@@ -21,6 +22,7 @@ export default function StudentTable() {
         onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        columnResizeMode: "onChange",
     });
 
     return (
@@ -31,12 +33,15 @@ export default function StudentTable() {
                         {table.getHeaderGroups().map((headerGroup) => (
                             <tr key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
-                                    <th key={header.id} scope="col">
+                                    <th key={header.id} scope="col" style={{ width: header.getSize() }}>
                                         {flexRender(
                                             header.column.columnDef.header,
                                             header.getContext()
                                         )}
+
+                                        <ColumnResizer header={header} />
                                     </th>
+
                                 ))}
                             </tr>
                         ))}
