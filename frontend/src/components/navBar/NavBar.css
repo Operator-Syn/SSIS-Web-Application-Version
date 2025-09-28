@@ -9,26 +9,6 @@
     font-weight: bold;
 }
 
-.responsive-width {
-    width: 40%;
-}
-
-.navbar .navbar-brand {
-    margin: 0;
-    font-size: var(--font-size-medium);
-    padding: 0.5rem;
-    /* Simulated text outline */
-    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black,
-        0.5px 0.5px 0 black;
-}
-
-.nav-item {
-    cursor: pointer;
-    /* Simulated text outline */
-    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black,
-        0.5px 0.5px 0 black;
-}
-
 .navbar .nav-link {
     transition: color 0.25s ease, text-shadow 0.4s ease;
 }

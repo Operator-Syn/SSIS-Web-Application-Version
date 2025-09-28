@@ -10,6 +10,7 @@ export const brandName = "Lupinbridge Student Information System";
 export interface NavBarBrandProps {
     logoSrc?: string;   // optional
     logoAlt?: string;   // optional
+    onClick?: () => void; // optional click handler
 }
 
 export const Logo: NavBarBrandProps = {
@@ -89,7 +90,11 @@ const columnHelper = createColumnHelper<Student>();
 
 export const studentColumns = [
     columnHelper.accessor("id", {
-        header: "ID",
+        header: "ID Number",
+        cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
+    }),
+    columnHelper.accessor("lastName", {
+        header: "Last Name",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
     columnHelper.accessor("firstName", {
@@ -97,12 +102,8 @@ export const studentColumns = [
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
     columnHelper.accessor("middleName", {
-        header: "Middle Name",
+        header: "Middle Initial",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue() ?? "-"),
-    }),
-    columnHelper.accessor("lastName", {
-        header: "Last Name",
-        cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
     columnHelper.accessor("gender", {
         header: "Gender",
@@ -120,4 +121,10 @@ export const studentColumns = [
         header: "Program",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
+];
+
+// ---------- Data Page Dropdown Options ----------
+export const sortByOptions = [
+    { label: "Ascending", onClick: () => console.log("align-items-centerAscending clicked now sending SQL Query through Flask") },
+    { label: "Descending", onClick: () => console.log("Descending clicked now sending SQL Query through Flask") },
 ];

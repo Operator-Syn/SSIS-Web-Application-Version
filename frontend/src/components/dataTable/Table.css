@@ -3,7 +3,6 @@
 /* Scrollable table container */
 .table-container {
     max-height: calc(3.50rem * 10);
-    /* show 20 rows before scrolling */
     overflow-y: auto;
     padding: 0;
     scrollbar-color: rgb(87, 87, 87) transparent;
@@ -18,11 +17,8 @@
 .student-table th,
 .student-table td {
     overflow-wrap: anywhere;
-    /* allow long words like emails to wrap */
     word-break: normal;
-    /* optional fallback */
     white-space: normal;
-    /* allow wrapping */
 }
 
 /* Sticky first column */
@@ -31,7 +27,6 @@
     position: sticky;
     left: 0;
     z-index: 2;
-    /* lower than top-left cell */
 }
 
 /* Sticky header row */
@@ -40,19 +35,16 @@
     position: sticky;
     top: 0;
     z-index: 3;
-    /* header above body cells */
 }
 
 /* Top-left cell (first column + header) */
 .student-table thead th:first-child {
     z-index: 5;
-    /* above both header row and first column */
 }
 
 /* Resizer for column resizing */
 .student-table th {
     position: relative;
-    /* needed for resizer positioning */
 }
 
 .resizer {
@@ -61,28 +53,18 @@
     top: 0;
     height: 100%;
     width: 5px;
-    /* visible handle width */
     cursor: col-resize;
     user-select: none;
     touch-action: none;
 }
 
-.resizer.isResizing {
-    background-color: #006ab1;
-    /* highlight while dragging */
-}
-
-/* Hover effect */
-.student-table th:hover .resizer {
-    background-color: #006ab1;
-}
-
-/* Highlight the entire header while resizing */
+.resizer.isResizing,
+.student-table th:hover .resizer,
 .student-table th:has(.resizer.isResizing) {
     background-color: #006ab1;
 }
 
-/* Responsive adjustments */
+/* Responsive table adjustments */
 @media (max-width: 1400px) {
     .table-container {
         max-height: calc(3.75rem * 10);
@@ -105,5 +87,30 @@
     .student-table {
         table-layout: auto;
         min-width: none;
+    }
+}
+
+/* Pagination styles */
+.pagination-wrapper .pagination-center,
+.pagination-wrapper .page-jump,
+.pagination-wrapper .page-size {
+    width: auto;
+    flex-grow: 0;
+}
+
+@media (max-width: 768px) {
+
+    .pagination-wrapper .pagination-center,
+    .pagination-wrapper .page-size {
+        width: 100%;
+    }
+
+    .pagination-wrapper .page-jump {
+        flex-grow: 1;
+    }
+
+    .pagination-wrapper .pagination-center .pagination {
+        width: 100%;
+        justify-content: center;
     }
 }
