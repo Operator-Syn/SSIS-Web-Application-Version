@@ -1,0 +1,18 @@
+/* Inactive tabs */
+.nav-tabs .nav-link {
+    color: rgb(227, 242, 253);
+}
+
+/* Active tab */
+.nav-tabs .nav-link.active {
+    color: white;
+    background-color: rgba(28, 87, 137, 0.7);
+}
+
+/* Hover effect only for inactive tabs */
+.nav-tabs .nav-link:not(.active):hover {
+    background-color: rgba(60, 120, 180, 0.7);
+    /* lighter hover */
+    color: white;
+    /* optional for contrast */
+}

@@ -1,0 +1,29 @@
+.btn-yellow-flat {
+    --bs-btn-font-weight: 600;
+    --bs-btn-color: #000;
+    /* black text */
+    --bs-btn-bg: #ffe97c;
+    /* light yellow base */
+    --bs-btn-border-color: #000;
+    /* black outline */
+
+    --bs-btn-hover-color: #000;
+    --bs-btn-hover-bg: #ffe066;
+    /* medium yellow on hover */
+    --bs-btn-hover-border-color: #000;
+
+    --bs-btn-focus-shadow-rgb: 0, 0, 0;
+    /* no blue glow */
+
+    --bs-btn-active-color: #000;
+    --bs-btn-active-bg: #ffcc12;
+    /* dark yellow when active/pressed */
+    --bs-btn-active-border-color: #000;
+
+    --bs-btn-disabled-color: #6c757d;
+    /* Bootstrap’s default grey text */
+    --bs-btn-disabled-bg: #e9ecef;
+    /* light grey background */
+    --bs-btn-disabled-border-color: #adb5bd;
+    /* grey border */
+}
