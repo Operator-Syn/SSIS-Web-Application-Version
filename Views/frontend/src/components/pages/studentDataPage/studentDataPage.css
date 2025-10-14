@@ -1,8 +1,0 @@
-.student-data-page {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    /* adds spacing between SearchBar and Table */
-    padding: 1rem;
-    /* optional, gives breathing room from page edges */
-}

@@ -21,9 +21,13 @@ export default function App() {
         })}
 
 
-        {HiddenRoutes.map((link) => (
-          <Route key={link.path} path={link.path} element={link.component ? <link.component /> : null} />
-        ))}
+        {HiddenRoutes.map((link) => {
+          const Component = link.component;
+          return <Route key={link.path} path={link.path} element={Component ? <Component /> : null} />;
+        })}
+
+        <Route path="*" element={<h1>404 - Page Not Found</h1>} />
+
       </Routes>
 
     </Fragment>

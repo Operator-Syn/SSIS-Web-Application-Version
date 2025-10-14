@@ -4,7 +4,7 @@ import SearchBar from "../../../searchBar/SearchBar";
 import TableDropdown from "../../../dataTable/TableDropdown";
 import TablePagination from "../../../dataTable/TablePagination";
 // import "./StudentDataPage.css";
-import { sortByOptions, students, studentColumns } from "../../../../data/Content";
+import { sortByOptions, programColumns } from "../../../../data/Content";
 import { sortingStudentOptions as sortingOptions} from "../../../../data/SortingOptions"
 
 export default function ProgramTable() {
@@ -22,8 +22,8 @@ export default function ProgramTable() {
 
             {/* Table */}
             <InformationTable
-                data={students}                 // <-- add data
-                columns={studentColumns}        // <-- add columns
+                data={null}                 // <-- add data
+                columns={programColumns}        // <-- add columns
                 pageIndex={pagination.pageIndex}
                 pageSize={pagination.pageSize}
                 onPageChange={(page) => setPagination((prev) => ({ ...prev, pageIndex: page }))}

@@ -1,18 +1,32 @@
+import { useState, useEffect } from "react";
 import './SearchBar.css';
 
-export default function SearchBar() {
+type SearchBarProps = {
+    onSearch?: (query: string) => void; // callback when user types
+    placeholder?: string;              // customizable placeholder text
+    className?: string;                // optional additional CSS classes
+};
+
+export default function SearchBar({ onSearch, placeholder = "Search...", className = "" }: SearchBarProps) {
+    const [inputValue, setInputValue] = useState("");
+
+    // Debounce input changes
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            if (onSearch) onSearch(inputValue.trim());
+        }, 240); // debounce 240ms
+        return () => clearTimeout(handler);
+    }, [inputValue, onSearch]);
+
     return (
-        <div className="d-flex flex-grow-1 search-bar">
+        <div className={`d-flex flex-grow-1 search-bar ${className}`}>
             <i className="bi bi-search search-icon"></i>
             <input
                 className="form-control"
-                list="datalistOptions"
-                id="exampleDataList"
-                placeholder="Type to search..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={placeholder}
             />
-            <datalist id="datalistOptions">
-                {/* options */}
-            </datalist>
         </div>
     );
 }
