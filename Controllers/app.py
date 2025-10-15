@@ -6,14 +6,31 @@ from Controllers.student_table_controller import student_bp
 from Controllers.student_search_controller import student_search_bp
 from Controllers.college_table_controller import college_bp
 from Controllers.college_search_controller import college_search_bp
+from Controllers.program_table_controller import program_bp
+from Controllers.program_search_controller import program_search_bp
+from Controllers.college_add_controller import college_add_bp
+from Controllers.college_update_controller import college_update_bp
+from Controllers.college_delete_controller import college_delete_bp
 
 app = Flask(__name__, static_folder=Config.REACT_DIST)
 
-# Register the student API routes
-app.register_blueprint(student_bp)
-app.register_blueprint(student_search_bp)
+# Register API routes
+
+    #College API routes
 app.register_blueprint(college_bp)
 app.register_blueprint(college_search_bp)
+app.register_blueprint(college_add_bp)
+app.register_blueprint(college_update_bp)
+app.register_blueprint(college_delete_bp)
+
+    #Program API routes
+app.register_blueprint(program_bp)
+app.register_blueprint(program_search_bp)
+
+    #Student API routes
+app.register_blueprint(student_bp)
+app.register_blueprint(student_search_bp)
+
 
 # Cache the React index.html path
 INDEX_HTML = os.path.join(app.static_folder, "index.html")

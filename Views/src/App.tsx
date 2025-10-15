@@ -9,6 +9,7 @@ export default function App() {
     <Fragment>
       <NavBar />
       <Routes>
+        
         {NavLinks.map((link) => {
           const Component = link.component;
           return (

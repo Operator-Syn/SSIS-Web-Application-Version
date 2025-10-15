@@ -2,32 +2,92 @@ import { useState, useEffect } from "react";
 import FormHolder from "../../../forms/FormHolder";
 import InputForm from "../../../forms/InputForm";
 import HeaderToolbar from "../../../forms/HeaderToolbar";
-import AlertBanner from "../../../alertBanner/AlertBanner";
+import AlertBanner, { type AlertBannerProps } from "../../../alertBanner/AlertBanner";
 
 export default function EnrollmentForm() {
-
     const [collegeName, setCollegeName] = useState("");
-    const [collegeCode, setCollegeCode] = useState("");``
+    const [collegeCode, setCollegeCode] = useState("");
 
-
-    // modal state
+    // Info banner when page loads
     const [showBanner, setShowBanner] = useState(false);
 
-    // show alert banner when component mounts (/forms visited)
+    // Alert state for success/error messages
+    const [alert, setAlert] = useState<{
+        show: boolean;
+        type: AlertBannerProps["type"];
+        message: string;
+    }>({
+        show: false,
+        type: "info",
+        message: "",
+    });
+
     useEffect(() => {
         setShowBanner(true);
     }, []);
+
+    // Handle college registration
+    const handleRegister = async () => {
+        if (!collegeName.trim() || !collegeCode.trim()) {
+            setAlert({
+                show: true,
+                type: "danger", // use Bootstrap-compatible variant
+                message: "Please fill in both College Name and College Code.",
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/colleges/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    college_code: collegeCode.trim(),
+                    college_name: collegeName.trim(),
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setAlert({
+                    show: true,
+                    type: "success",
+                    message: data.message || "College registered successfully!",
+                });
+
+                // Reset form fields
+                setCollegeCode("");
+                setCollegeName("");
+            } else {
+                setAlert({
+                    show: true,
+                    type: "danger",
+                    message: data.message || "Failed to register college.",
+                });
+            }
+        } catch (err) {
+            console.error("Error registering college:", err);
+            setAlert({
+                show: true,
+                type: "danger",
+                message: "Server error. Please try again later.",
+            });
+        }
+    };
 
     return (
         <div className="registerCollege-form-page">
             <HeaderToolbar
                 leftText="College Registration Form"
                 rightButtons={[
-                    { label: "Register College", onClick: () => console.log("Register clicked") },
+                    { label: "Register College", onClick: handleRegister, className: "btn-progress" },
                 ]}
             />
 
-            {/* AlertBanner Modal */}
+            {/* Info banner when page loads */}
             <AlertBanner
                 message="You are now in the College Registration Form."
                 type="info"
@@ -35,7 +95,14 @@ export default function EnrollmentForm() {
                 onClose={() => setShowBanner(false)}
             />
 
-            {/* rest of your form */}
+            {/* Feedback banner for success or error */}
+            <AlertBanner
+                message={alert.message}
+                type={alert.type}
+                show={alert.show}
+                onClose={() => setAlert(prev => ({ ...prev, show: false }))}
+            />
+
             <FormHolder>
                 <InputForm
                     labels={["College Name"]}
@@ -52,7 +119,6 @@ export default function EnrollmentForm() {
                     patternMessage="College Code cannot be empty"
                 />
             </FormHolder>
-
         </div>
     );
 }

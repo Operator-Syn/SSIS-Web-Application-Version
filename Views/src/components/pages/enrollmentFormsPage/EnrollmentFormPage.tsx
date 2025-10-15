@@ -59,7 +59,7 @@ export default function EnrollmentForm() {
                 leftText="Enrollment Form"
                 rightButtons={[
                     { label: "Update Form", onClick: () => navigate("/forms/update") },
-                    { label: "Enroll Student", onClick: () => console.log("Enroll clicked") },
+                    { label: "Enroll Student", onClick: () => console.log("Enroll clicked"), className: "btn-progress" },
                 ]}
             />
 

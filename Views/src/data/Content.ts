@@ -98,7 +98,7 @@ export const studentColumns = [
 export interface Program {
     programName: string;
     programCode: string;
-    collegeCode: string;
+    collegeName: string;
 }
 
 // ---------- Program Table Columns ----------
@@ -113,8 +113,8 @@ export const programColumns = [
         header: "Program Code",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
-    programColumnHelper.accessor("collegeCode", {
-        header: "College Code",
+    programColumnHelper.accessor("collegeName", {
+        header: "College Name",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
 ]
@@ -125,7 +125,7 @@ export interface College {
     collegeCode: string;
 }
 
-// ---------- Program Table Columns ----------
+// ---------- College Table Columns ----------
 const collegeColumnHelper = createColumnHelper<College>();
 
 export const collegeColumns = [

@@ -3,6 +3,7 @@ import "./HeaderToolbar.css";
 interface ToolbarButton {
     label: string;
     onClick?: () => void;
+    className?: string; // optional custom class
 }
 
 interface HeaderToolbarProps {
@@ -30,7 +31,7 @@ export default function HeaderToolbar({
                         <button
                             key={index}
                             type="button"
-                            className="btn btn-yellow-flat"
+                            className={`btn ${btn.className ?? "btn-yellow-flat"}`} // use default if not provided
                             onClick={btn.onClick}
                         >
                             {btn.label}
@@ -51,7 +52,10 @@ export default function HeaderToolbar({
                     <ul className="dropdown-menu dropdown-menu-end">
                         {rightButtons.map((btn, index) => (
                             <li key={index}>
-                                <button className="dropdown-item" onClick={btn.onClick}>
+                                <button
+                                    className={`dropdown-item ${btn.className ?? ""}`} // optional class here too
+                                    onClick={btn.onClick}
+                                >
                                     {btn.label}
                                 </button>
                             </li>
