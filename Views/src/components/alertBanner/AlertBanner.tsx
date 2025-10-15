@@ -13,6 +13,7 @@ export interface AlertBannerProps {
     | "warning"
     | "info"
     | "light"
+    | "error"
     | "dark";
     title?: string;
     className?: string;

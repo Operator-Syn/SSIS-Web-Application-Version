@@ -76,6 +76,7 @@ class StudentSearchModel:
                 s.last_name,
                 s.gender,
                 s.year_level,
+                s.program_code,
                 p.program_name AS program_name,
                 c.college_name AS college_name
             {base_query}
@@ -94,8 +95,10 @@ class StudentSearchModel:
                 "last_name": r[3],
                 "gender": r[4],
                 "year_level": r[5],
-                "program_name": r[6],
-                "college_name": r[7],
+                "program_code": r[6],
+                "program_name": r[7],
+                "college_name": r[8],
             })
+
 
         return total_count, result_rows

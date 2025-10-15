@@ -34,14 +34,14 @@ export interface NavLinkItem {
 // Visible in navbar
 export const navLinks: NavLinkItem[] = [
     { name: "Homepage", path: "/", component: null },
-    { name: "Student Data Information", path: "/student-information", component: StudentData },
-    { name: "Enrollment Forms", path: "/forms", component: EnrollmentForms },
+    { name: "Student Data Information", path: "/student/information", component: StudentData },
+    { name: "Enrollment Forms", path: "/student/enroll", component: EnrollmentForms },
     { name: "Management", path: "/management", component: ManagementPage },
 ];
 
 // Hidden routes (not in navbar)
 export const hiddenRoutes: NavLinkItem[] = [
-    { name: "Update Forms", path: "/forms/update", component: UpdateEnrollment },
+    { name: "Update Forms", path: "/student/update", component: UpdateEnrollment },
 ];
 
 // ---------- Student Data Types ----------

@@ -15,6 +15,8 @@ from Controllers.program_add_controller import program_add_bp
 from Controllers.program_update_controller import program_update_bp
 from Controllers.program_delete_controller import program_delete_bp
 from Controllers.student_add_controller import student_add_bp
+from Controllers.student_update_controller import student_update_bp
+from Controllers.student_delete_controller import student_delete_bp
 
 app = Flask(__name__, static_folder=Config.REACT_DIST)
 
@@ -38,6 +40,8 @@ app.register_blueprint(program_delete_bp)
 app.register_blueprint(student_bp)
 app.register_blueprint(student_search_bp)
 app.register_blueprint(student_add_bp)
+app.register_blueprint(student_update_bp)
+app.register_blueprint(student_delete_bp)
 
 
 # Cache the React index.html path

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Form } from "react-bootstrap";
-import "./InputForm.css"
+import "./InputForm.css";
 
 interface InputFormProps {
     labels: string[];
@@ -9,9 +9,13 @@ interface InputFormProps {
     readOnly?: boolean;
     className?: string;
     onChange?: (index: number, newValue: string) => void;
-    pattern?: RegExp;              // optional regex
-    patternMessage?: string;       // message when invalid
-    placeholder?: string | string[]; // optional placeholder
+    pattern?: RegExp;
+    patternMessage?: string;
+    placeholder?: string | string[];
+    onBlur?: () => void | Promise<void>;
+
+    /** Optional datalist integration */
+    datalistOptions?: string[] | string[][]; // array of suggestions
 }
 
 export default function InputForm(props: InputFormProps) {
@@ -24,16 +28,14 @@ export default function InputForm(props: InputFormProps) {
         onChange,
         pattern,
         patternMessage = "Invalid format",
+        placeholder,
+        datalistOptions,
     } = props;
-
-    // destructure optional placeholder separately
-    const placeholder = props.placeholder;
 
     const [touched, setTouched] = useState<boolean[]>(labels.map(() => false));
     const [valid, setValid] = useState<boolean[]>(labels.map(() => true));
 
     useEffect(() => {
-        // Update validity whenever value changes
         const newValid = labels.map((_, i) => {
             const val = Array.isArray(value) ? value[i] ?? "" : value ?? "";
             return pattern ? pattern.test(val) : true;
@@ -45,16 +47,25 @@ export default function InputForm(props: InputFormProps) {
         <>
             {labels.map((label, i) => {
                 const val = Array.isArray(value) ? value[i] ?? "" : value ?? "";
-                const ph =
-                    Array.isArray(placeholder)
-                        ? placeholder[i] ?? `Enter ${label}`
-                        : placeholder ?? `Enter ${label}`;
+                const ph = Array.isArray(placeholder)
+                    ? placeholder[i] ?? `Enter ${label}`
+                    : placeholder ?? `Enter ${label}`;
+
+                // Generate a unique ID for datalist
+                const datalistId = `datalist-${label.replace(/\s+/g, "-").toLowerCase()}-${i}`;
+
+                // Get datalist options for this field
+                const list =
+                    Array.isArray(datalistOptions) && Array.isArray(datalistOptions[0])
+                        ? (datalistOptions as string[][])[i]
+                        : (datalistOptions as string[] | undefined);
 
                 return (
                     <Form.Group key={i} controlId={`input-${i}`} className="mb-md-3">
                         <Form.Label>{label}</Form.Label>
                         <Form.Control
                             type="text"
+                            list={list ? datalistId : undefined}
                             placeholder={ph}
                             disabled={disabled}
                             readOnly={readOnly}
@@ -71,6 +82,15 @@ export default function InputForm(props: InputFormProps) {
                             isInvalid={touched[i] && !valid[i]}
                             isValid={touched[i] && valid[i]}
                         />
+
+                        {list && (
+                            <datalist id={datalistId}>
+                                {list.map((option, idx) => (
+                                    <option key={idx} value={option} />
+                                ))}
+                            </datalist>
+                        )}
+
                         {pattern && touched[i] && !valid[i] && (
                             <Form.Control.Feedback type="invalid">
                                 <strong>{patternMessage}</strong>

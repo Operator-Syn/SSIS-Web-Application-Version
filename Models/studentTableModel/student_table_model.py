@@ -14,7 +14,7 @@ class StudentModel:
     }
 
     @staticmethod
-    def get_students(order_by="id_number", direction="ASC", limit=20, offset=0, filters={}):
+    def get_students(order_by="id_number", direction="ASC", limit=None, offset=None, filters={}):
         base_query = """
             SELECT 
                 s.id_number,
@@ -42,12 +42,19 @@ class StudentModel:
             base_query += " WHERE " + " AND ".join(where_clauses)
 
         order_column = StudentModel.column_map.get(order_by, "s.id_number")
-        base_query += f" ORDER BY {order_column} {direction} LIMIT %s OFFSET %s"
-        values.extend([limit, offset])
+        base_query += f" ORDER BY {order_column} {direction}"
+
+        if limit is not None:
+            base_query += " LIMIT %s"
+            values.append(limit)
+        if offset is not None:
+            base_query += " OFFSET %s"
+            values.append(offset)
 
         rows = DBUtils.execute_query(base_query, tuple(values), fetch=True)
         columns = list(StudentModel.column_map.keys())
         return [dict(zip(columns, row)) for row in rows]
+
 
     @staticmethod
     def get_count(filters={}):

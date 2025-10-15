@@ -196,7 +196,7 @@ export default function EnrollmentForm() {
             <HeaderToolbar
                 leftText="Enrollment Form"
                 rightButtons={[
-                    { label: "Update Form", onClick: () => navigate("/forms/update") },
+                    { label: "Update Form", onClick: () => navigate("/student/update") },
                     { label: "Enroll Student", onClick: handleEnrollStudent, className: "btn-progress" },
                 ]}
             />
@@ -233,8 +233,8 @@ export default function EnrollmentForm() {
                 <SelectForm
                     label="Gender"
                     options={[
-                        { label: "Male", value: "M" },
-                        { label: "Female", value: "F" },
+                        { label: "Male", value: "Male" },
+                        { label: "Female", value: "Female" },
                     ]}
                     value={gender}
                     onChange={setGender}
@@ -287,7 +287,7 @@ export default function EnrollmentForm() {
                     readOnly
                     value={getOptionLabel(college, collegeOptions)}
                 />
-                
+
                 <InputForm
                     labels={["Selected Program"]}
                     className="text-center"

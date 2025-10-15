@@ -1,4 +1,3 @@
-# Controllers/programs/ProgramDeleteController.py
 from flask import Blueprint, request, jsonify
 from Models.programTableModel.program_delete_model import ProgramDeleteModel
 
