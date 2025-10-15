@@ -26,7 +26,16 @@ class CollegeDeleteModel:
             if not existing:
                 return {"success": False, "message": "College not found."}
 
-            # Delete the college
+            # Check if any programs are linked to this college
+            program_check_query = "SELECT 1 FROM programs WHERE college_code = %s LIMIT 1"
+            linked_program = DBUtils.execute_query(program_check_query, (college_code,), fetch=True)
+            if linked_program:
+                return {
+                    "success": False,
+                    "message": "Cannot Delete College: There are programs linked to it."
+                }
+
+            # Safe to delete
             delete_query = "DELETE FROM colleges WHERE college_code = %s"
             DBUtils.execute_query(delete_query, (college_code,), fetch=False)
 

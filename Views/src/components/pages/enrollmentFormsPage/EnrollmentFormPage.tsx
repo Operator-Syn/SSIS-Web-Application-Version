@@ -7,6 +7,19 @@ import HeaderToolbar from "../../forms/HeaderToolbar";
 import AlertBanner from "../../alertBanner/AlertBanner";
 import "./EnrollmentFormPage.css";
 
+interface CollegeOption {
+    label: string;
+    value: string;
+    name: string;
+}
+
+interface ProgramOption {
+    label: string;
+    value: string;
+    name: string;
+    college_code: string;
+}
+
 export default function EnrollmentForm() {
     const navigate = useNavigate();
 
@@ -19,39 +32,164 @@ export default function EnrollmentForm() {
     const [program, setProgram] = useState("");
     const [idNumber, setIdNumber] = useState("");
 
-    // modal state
-    const [showBanner, setShowBanner] = useState(false);
+    const [collegeOptions, setCollegeOptions] = useState<CollegeOption[]>([]);
+    const [programOptions, setProgramOptions] = useState<ProgramOption[]>([]);
+    const [filteredPrograms, setFilteredPrograms] = useState<ProgramOption[]>([]);
 
-    // show alert banner when component mounts (/forms visited)
+    const [alert, setAlert] = useState({
+        show: false,
+        type: "info" as "info" | "success" | "danger" | "warning",
+        title: "Notice",
+        message: "",
+        buttons: [] as {
+            label: string;
+            variant?: string;
+            onClick?: () => void;
+            closeOnClick?: boolean;
+        }[],
+    });
+
+    /** Helper to show alerts */
+    const showAlert = (
+        type: "info" | "success" | "danger" | "warning",
+        message: string,
+        buttons?: {
+            label: string;
+            variant?: string;
+            onClick?: () => void;
+            closeOnClick?: boolean;
+        }[],
+        title?: string
+    ) => {
+        setAlert({
+            show: true,
+            type,
+            title: title || "Notice",
+            message,
+            buttons: buttons || [{ label: "Close", variant: type, closeOnClick: true }],
+        });
+    };
+
+    /** Load colleges and programs dynamically from backend */
+    const loadColleges = async () => {
+        try {
+            const res = await fetch("/api/colleges");
+            const data = await res.json();
+            if (Array.isArray(data.rows)) {
+                setCollegeOptions(
+                    data.rows.map((c: any) => ({
+                        label: `${c.college_code} - ${c.college_name}`,
+                        value: c.college_code,
+                        name: c.college_name,
+                    }))
+                );
+            }
+        } catch {
+            showAlert("danger", "Failed to load colleges.");
+        }
+    };
+
+    const loadPrograms = async () => {
+        try {
+            const res = await fetch("/api/programs");
+            const data = await res.json();
+            if (Array.isArray(data.rows)) {
+                const mapped = data.rows.map((p: any) => ({
+                    label: `${p.program_code} - ${p.program_name}`,
+                    value: p.program_code,
+                    name: p.program_name,
+                    college_code: p.college_code,
+                }));
+                setProgramOptions(mapped);
+                setFilteredPrograms(mapped); // initialize
+            }
+        } catch {
+            showAlert("danger", "Failed to load programs.");
+        }
+    };
+
     useEffect(() => {
-        setShowBanner(true);
+        loadColleges();
+        loadPrograms();
+        showAlert("info", "You are now in the Enrollment Form.");
     }, []);
 
-    // Options arrays
-    const collegeOptions = [
-        { label: "College of Computer Studies", value: "CCS" },
-    ];
+    /** When a college is selected */
+    const handleSelectCollege = (collegeCode: string) => {
+        setCollege(collegeCode);
+        const filtered = programOptions.filter(p => p.college_code === collegeCode);
+        setFilteredPrograms(filtered);
 
-    const programOptions = [
-        { label: "Bachelors of Science in Computer Science", value: "BSCS" },
-    ];
+        // Clear program if it's not under this college
+        const selectedProgram = programOptions.find(p => p.value === program);
+        if (selectedProgram && selectedProgram.college_code !== collegeCode) {
+            setProgram("");
+        }
+    };
 
-    const genderOptions = [
-        { label: "Male", value: "M" },
-        { label: "Female", value: "F" },
-    ];
+    /** When a program is selected */
+    const handleSelectProgram = (programCode: string) => {
+        setProgram(programCode);
+        const selected = programOptions.find(p => p.value === programCode);
+        if (selected) {
+            setCollege(selected.college_code);
+            setFilteredPrograms(programOptions.filter(p => p.college_code === selected.college_code));
+        }
+    };
 
-    const yearLevelOptions = [
-        { label: "1", value: "1" },
-        { label: "2", value: "2" },
-        { label: "3", value: "3" },
-        { label: "4", value: "4" },
-    ];
+    /** Auto-update filteredPrograms when options change */
+    useEffect(() => {
+        if (college) {
+            setFilteredPrograms(programOptions.filter(p => p.college_code === college));
+        } else {
+            setFilteredPrograms(programOptions);
+        }
+    }, [college, programOptions]);
 
-    function getOptionLabel(value: string, options: { label: string; value: string }[]) {
+    /** Enroll student */
+    const handleEnrollStudent = async () => {
+        if (!idNumber || !firstName || !lastName || !gender || !yearLevel || !program || !college) {
+            showAlert("warning", "Please fill out all required fields.");
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/students/add", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id_number: idNumber,
+                    first_name: firstName,
+                    middle_name: middleName,
+                    last_name: lastName,
+                    gender,
+                    year_level: parseInt(yearLevel, 10),
+                    program_code: program,
+                }),
+            });
+
+            const data = await res.json();
+            showAlert(data.success ? "success" : "danger", data.message);
+
+            if (data.success) {
+                setIdNumber("");
+                setFirstName("");
+                setMiddleName("");
+                setLastName("");
+                setGender("");
+                setYearLevel("");
+                setProgram("");
+                setCollege("");
+            }
+        } catch {
+            showAlert("danger", "Error connecting to the server.");
+        }
+    };
+
+    const getOptionLabel = (value: string, options: { label: string; value: string }[]) => {
         const option = options.find(o => o.value === value);
-        return option ? `${value}: ${option.label}` : "";
-    }
+        return option ? option.label : "";
+    };
 
     return (
         <div className="enrollment-form-page">
@@ -59,19 +197,19 @@ export default function EnrollmentForm() {
                 leftText="Enrollment Form"
                 rightButtons={[
                     { label: "Update Form", onClick: () => navigate("/forms/update") },
-                    { label: "Enroll Student", onClick: () => console.log("Enroll clicked"), className: "btn-progress" },
+                    { label: "Enroll Student", onClick: handleEnrollStudent, className: "btn-progress" },
                 ]}
             />
 
-            {/* AlertBanner Modal */}
             <AlertBanner
-                message="You are now in the Enrollment Form."
-                type="info"
-                show={showBanner}
-                onClose={() => setShowBanner(false)}
+                message={alert.message}
+                type={alert.type}
+                title={alert.title}
+                show={alert.show}
+                onClose={() => setAlert(prev => ({ ...prev, show: false }))}
+                buttons={alert.buttons}
             />
 
-            {/* rest of your form */}
             <FormHolder>
                 <InputForm
                     labels={["First Name"]}
@@ -94,13 +232,16 @@ export default function EnrollmentForm() {
                 />
                 <SelectForm
                     label="Gender"
-                    options={genderOptions}
+                    options={[
+                        { label: "Male", value: "M" },
+                        { label: "Female", value: "F" },
+                    ]}
                     value={gender}
                     onChange={setGender}
                 />
                 <SelectForm
                     label="Year Level"
-                    options={yearLevelOptions}
+                    options={[1, 2, 3, 4].map(y => ({ label: y.toString(), value: y.toString() }))}
                     value={yearLevel}
                     onChange={setYearLevel}
                 />
@@ -113,17 +254,18 @@ export default function EnrollmentForm() {
                     label="College"
                     options={collegeOptions}
                     value={college}
-                    onChange={setCollege}
+                    onChange={handleSelectCollege}
                 />
+
                 <SelectForm
                     label="Program"
-                    options={programOptions}
+                    options={filteredPrograms}
                     value={program}
-                    onChange={setProgram}
+                    onChange={handleSelectProgram}
                 />
             </FormHolder>
 
-            <hr className="thick-divider d-block d-md-none" />
+            <hr className="thick-divider" />
 
             <FormHolder>
                 <InputForm
@@ -139,14 +281,15 @@ export default function EnrollmentForm() {
 
             <FormHolder>
                 <InputForm
-                    labels={["Your selected College"]}
+                    labels={["Selected College"]}
                     className="text-center"
                     disabled
                     readOnly
                     value={getOptionLabel(college, collegeOptions)}
                 />
+                
                 <InputForm
-                    labels={["Your selected Program"]}
+                    labels={["Selected Program"]}
                     className="text-center"
                     disabled
                     readOnly

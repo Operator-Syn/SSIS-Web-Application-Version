@@ -4,7 +4,8 @@ class ProgramModel:
     column_map = {
         "program_code": "p.program_code",
         "program_name": "p.program_name",
-        "college_name": "c.college_name",
+        "college_code": "p.college_code",
+        "college_name": "c.college_name"
     }
 
     @staticmethod
@@ -13,6 +14,7 @@ class ProgramModel:
             SELECT
                 p.program_code,
                 p.program_name,
+                p.college_code,
                 c.college_name
             FROM programs p
             JOIN colleges c ON p.college_code = c.college_code
