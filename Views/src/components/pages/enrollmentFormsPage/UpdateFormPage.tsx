@@ -203,7 +203,7 @@
             }
 
             try {
-                const res = await fetch("/api/students/update", {
+                const res = await fetch("z/api/students/update", {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

@@ -4,6 +4,9 @@ import StudentData from "../components/pages/studentDataPage/StudentDataPage";
 import EnrollmentForms from "../components/pages/enrollmentFormsPage/EnrollmentFormPage";
 import UpdateEnrollment from "../components/pages/enrollmentFormsPage/UpdateFormPage"
 import ManagementPage from "../components/pages/managementPage/ManagementPage";
+import LoginPage from "../components/loginPage/login"
+import HomePage from "../components/pages/homePage/homepage";
+
 import LogoImage from "../assets/Logo.png";
 import { createColumnHelper } from "@tanstack/react-table";
 
@@ -33,7 +36,7 @@ export interface NavLinkItem {
 
 // Visible in navbar
 export const navLinks: NavLinkItem[] = [
-    { name: "Homepage", path: "/", component: null },
+    { name: "Homepage", path: "/", component: HomePage },
     { name: "Student Data Information", path: "/student/information", component: StudentData },
     { name: "Enrollment Forms", path: "/student/enroll", component: EnrollmentForms },
     { name: "Management", path: "/management", component: ManagementPage },
@@ -42,6 +45,7 @@ export const navLinks: NavLinkItem[] = [
 // Hidden routes (not in navbar)
 export const hiddenRoutes: NavLinkItem[] = [
     { name: "Update Forms", path: "/student/update", component: UpdateEnrollment },
+    { name: "Login", path: "/login", component: LoginPage}
 ];
 
 // ---------- Student Data Types ----------
