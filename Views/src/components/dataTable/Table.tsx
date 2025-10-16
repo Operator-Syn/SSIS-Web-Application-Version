@@ -1,31 +1,33 @@
 import { useEffect } from "react";
-import { useReactTable, flexRender, getCoreRowModel, getPaginationRowModel } from "@tanstack/react-table";
+import { useReactTable, flexRender, getCoreRowModel } from "@tanstack/react-table";
 import { ColumnResizer } from "./ColumnResizer";
 import "./Table.css";
 
 interface TableProps<TData> {
-    data: TData[];
+    data: TData[] | null;
     columns: any[];
     pageIndex: number;
     pageSize: number;
     onPageChange: (page: number) => void;
     onPageSizeChange: (size: number) => void;
-    onPageCountChange: (count: number) => void;
+    onPageCountChange: (count: number) => void; // total pages from server
+    totalCount?: number; // add this prop
 }
 
 export default function Table<TData>(props: TableProps<TData>) {
     const {
-        data,
+        data = [],
         columns,
         pageIndex,
         pageSize,
         onPageChange,
         onPageSizeChange,
-        onPageCountChange
+        onPageCountChange,
+        totalCount = 0,
     } = props;
 
     const table = useReactTable({
-        data,
+        data: data ?? [],
         columns,
         state: { pagination: { pageIndex, pageSize } },
         onPaginationChange: (updater) => {
@@ -39,13 +41,13 @@ export default function Table<TData>(props: TableProps<TData>) {
             }
         },
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
         columnResizeMode: "onChange",
+        manualPagination: true, // <-- important for server-side
     });
 
     useEffect(() => {
-        onPageCountChange(table.getPageCount());
-    }, [table.getPageCount(), onPageCountChange]);
+        onPageCountChange(Math.ceil(totalCount / pageSize)); // update page count based on server total
+    }, [totalCount, pageSize, onPageCountChange]);
 
     return (
         <div className="table-wrapper">
@@ -75,6 +77,13 @@ export default function Table<TData>(props: TableProps<TData>) {
                                 ))}
                             </tr>
                         ))}
+                        {table.getRowModel().rows.length === 0 && (
+                            <tr>
+                                <td colSpan={columns.length} className="text-center">
+                                    No data available
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>

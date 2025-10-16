@@ -4,6 +4,9 @@ import StudentData from "../components/pages/studentDataPage/StudentDataPage";
 import EnrollmentForms from "../components/pages/enrollmentFormsPage/EnrollmentFormPage";
 import UpdateEnrollment from "../components/pages/enrollmentFormsPage/UpdateFormPage"
 import ManagementPage from "../components/pages/managementPage/ManagementPage";
+import LoginPage from "../components/loginPage/login"
+import HomePage from "../components/pages/homePage/homepage";
+
 import LogoImage from "../assets/Logo.png";
 import { createColumnHelper } from "@tanstack/react-table";
 
@@ -33,18 +36,19 @@ export interface NavLinkItem {
 
 // Visible in navbar
 export const navLinks: NavLinkItem[] = [
-    { name: "Homepage", path: "/", component: null },
-    { name: "Student Data Information", path: "/student-information", component: StudentData },
-    { name: "Enrollment Forms", path: "/forms", component: EnrollmentForms },
+    { name: "Homepage", path: "/", component: HomePage },
+    { name: "Student Data Information", path: "/student/information", component: StudentData },
+    { name: "Enrollment Forms", path: "/student/enroll", component: EnrollmentForms },
     { name: "Management", path: "/management", component: ManagementPage },
 ];
 
 // Hidden routes (not in navbar)
 export const hiddenRoutes: NavLinkItem[] = [
-    { name: "Update Forms", path: "/forms/update", component: UpdateEnrollment },
+    { name: "Update Forms", path: "/student/update", component: UpdateEnrollment },
+    { name: "Login", path: "/login", component: LoginPage}
 ];
 
-// ---------- Student Data Types & Placeholder ----------
+// ---------- Student Data Types ----------
 export interface Student {
     id: string;
     firstName: string;
@@ -56,85 +60,91 @@ export interface Student {
     program: string;
 }
 
-// Function to generate a random ID in format YYYY-XXXX
-const generateId = (year: number, index: number) =>
-    `${year}-${String(index).padStart(4, "0")}`;
-
-// Placeholder data
-const sampleNames = [
-    { firstName: "Juan", lastName: "Dela Cruz" },
-    { firstName: "Maria", lastName: "Santos" },
-    { firstName: "Pedro", lastName: "Reyes" },
-];
-
-const sampleCourses = [
-    "BS Computer Science",
-    "BS Information Technology",
-    "BS Software Engineering",
-];
-
-export const students: Student[] = Array.from({ length: 10000 }, (_, i) => {
-    const year = 2023 + (i % 3);
-    const name = sampleNames[i % sampleNames.length];
-    const program = sampleCourses[i % sampleCourses.length];
-    const yearLevel = (i % 4) + 1;
-    const gender = i % 2 === 0 ? "Male" : "Female";
-    const collegeName = "College of Computer Studies";
-
-    return {
-        id: generateId(year, i + 1),
-        firstName: name.firstName,
-        middleName: Math.random() < 0.95
-            ? String.fromCharCode(65 + Math.floor(Math.random() * 26))
-            : undefined,
-        lastName: name.lastName,
-        gender,
-        yearLevel,
-        collegeName,
-        program,
-    };
-});
-
 // ---------- Student Table Columns ----------
-const columnHelper = createColumnHelper<Student>();
+const studentColumnHelper = createColumnHelper<Student>();
 
 export const studentColumns = [
-    columnHelper.accessor("id", {
+    studentColumnHelper.accessor("id", {
         header: "ID Number",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
-    columnHelper.accessor("lastName", {
+    studentColumnHelper.accessor("lastName", {
         header: "Last Name",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
-    columnHelper.accessor("firstName", {
+    studentColumnHelper.accessor("firstName", {
         header: "First Name",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
-    columnHelper.accessor("middleName", {
-        header: "Middle Initial",
+    studentColumnHelper.accessor("middleName", {
+        header: "Middle Name",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue() ?? "-"),
     }),
-    columnHelper.accessor("gender", {
+    studentColumnHelper.accessor("gender", {
         header: "Gender",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
-    columnHelper.accessor("yearLevel", {
+    studentColumnHelper.accessor("yearLevel", {
         header: "Year Level",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
-    columnHelper.accessor("collegeName", {
+    studentColumnHelper.accessor("collegeName", {
         header: "College Name",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
-    columnHelper.accessor("program", {
+    studentColumnHelper.accessor("program", {
         header: "Program",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
 ];
 
+// ---------- Program Data Types ----------
+export interface Program {
+    programName: string;
+    programCode: string;
+    collegeName: string;
+}
+
+// ---------- Program Table Columns ----------
+const programColumnHelper = createColumnHelper<Program>();
+
+export const programColumns = [
+    programColumnHelper.accessor("programName", {
+        header: "Program Name",
+        cell: (info) => createElement("p", {className: "m-0 p-2"}, info.getValue()),
+    }),
+    programColumnHelper.accessor("programCode", {
+        header: "Program Code",
+        cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
+    }),
+    programColumnHelper.accessor("collegeName", {
+        header: "College Name",
+        cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
+    }),
+]
+
+// ---------- College Data Types ----------
+export interface College {
+    collegeName: string;
+    collegeCode: string;
+}
+
+// ---------- College Table Columns ----------
+const collegeColumnHelper = createColumnHelper<College>();
+
+export const collegeColumns = [
+    collegeColumnHelper.accessor("collegeName", {
+        header: "College Name",
+        cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
+    }),
+    collegeColumnHelper.accessor("collegeCode", {
+        header: "College Code",
+        cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
+    }),
+]
+
 // ---------- Data Page Dropdown Options ----------
 export const sortByOptions = [
-    { label: "Ascending", onClick: () => console.log("Ascending clicked now sending SQL Query through Flask") },
-    { label: "Descending", onClick: () => console.log("Descending clicked now sending SQL Query through Flask") },
+    { label: "Ascending", value: "ASC"},
+    { label: "Descending", value: "DESC" },
 ];

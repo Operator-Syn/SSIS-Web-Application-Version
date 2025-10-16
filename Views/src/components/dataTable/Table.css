@@ -10,8 +10,9 @@
 
 /* Base table styles */
 .student-table {
-    table-layout: auto;
-    min-width: 1200px;
+    table-layout: fixed;
+    min-width: 0;
+    width: 100%;
 }
 
 .student-table th,

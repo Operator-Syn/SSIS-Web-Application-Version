@@ -3,35 +3,33 @@ import { Form } from "react-bootstrap";
 
 interface DropdownItem {
     label: string;
-    onClick?: () => void;
 }
 
 interface TableDropdownProps {
     buttonText: string;
     items: DropdownItem[];
+    value?: string; // <- add optional controlled value
+    onSelect?: (value: string) => void;
 }
 
-export default function TableDropdown({ buttonText, items }: TableDropdownProps) {
+
+export default function TableDropdown({ buttonText, items, value, onSelect }: TableDropdownProps) {
     const [selected, setSelected] = useState<string>("");
 
     useEffect(() => {
-        if (items.length > 0) setSelected(items[0].label);
-    }, [items]);
+        if (items.length > 0 && !value) setSelected(items[0].label);
+    }, [items, value]);
 
-    const handleSelect = (value: string) => {
-        setSelected(value);
-        const item = items.find((i) => i.label === value);
-        item?.onClick?.();
+    const handleSelect = (val: string) => {
+        if (!value) setSelected(val); // only update internal state if uncontrolled
+        onSelect?.(val);
     };
 
     return (
         <Form.Group className="d-flex align-items-center gap-2">
-            {/* Static label */}
             <span className="fw-bold text-nowrap">{buttonText}</span>
-
-            {/* Combobox */}
             <Form.Select
-                value={selected}
+                value={value ?? selected} // controlled if value provided
                 onChange={(e) => handleSelect(e.target.value)}
             >
                 {items.map((item, index) => (
@@ -43,3 +41,4 @@ export default function TableDropdown({ buttonText, items }: TableDropdownProps)
         </Form.Group>
     );
 }
+
