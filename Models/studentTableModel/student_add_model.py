@@ -10,7 +10,8 @@ class StudentAddModel:
         last_name: str,
         gender: str,
         year_level: int,
-        program_code: str
+        program_code: str,
+        profile_image_path: str = None  
     ):
         """
         Adds a new student record to the database.
@@ -23,6 +24,7 @@ class StudentAddModel:
             gender (str): "Male" or "Female".
             year_level (int): Year level of the student.
             program_code (str): Code of the program the student is enrolled in.
+            profile_image_path (str, optional): Path to the uploaded profile picture.
 
         Returns:
             dict: {
@@ -46,12 +48,18 @@ class StudentAddModel:
             if duplicate_exists:
                 return {"success": False, "message": f"Student with ID '{id_number}' already exists."}
 
-            # Insert new student
+            # Insert new student, including profile_image_path
             insert_query = """
-                INSERT INTO students (id_number, first_name, middle_name, last_name, gender, year_level, program_code)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO students
+                    (id_number, first_name, middle_name, last_name, gender, year_level, program_code, profile_image_path)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """
-            DBUtils.execute_query(insert_query, (id_number, first_name, middle_name, last_name, gender, year_level, program_code), fetch=False)
+        
+            DBUtils.execute_query(
+                insert_query,
+                (id_number, first_name, middle_name, last_name, gender, year_level, program_code, profile_image_path),
+                fetch=False
+            )
             return {"success": True, "message": "Student added successfully."}
 
         except Exception as e:

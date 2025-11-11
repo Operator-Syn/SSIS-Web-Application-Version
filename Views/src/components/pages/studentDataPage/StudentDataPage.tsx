@@ -49,6 +49,7 @@ export default function StudentDataPage() {
                 yearLevel: s.year_level,
                 program: s.program_name,
                 collegeName: s.college_name,
+                imagePath: s.profile_image_path ?? null,
             }));
 
             setStudentsCache(prev => ({ ...prev, [cacheKey]: mapped }));

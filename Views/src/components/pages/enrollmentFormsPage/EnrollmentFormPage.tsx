@@ -5,6 +5,8 @@ import InputForm from "../../forms/InputForm";
 import SelectForm from "../../forms/SelectForm";
 import HeaderToolbar from "../../forms/HeaderToolbar";
 import AlertBanner from "../../alertBanner/AlertBanner";
+import FileInput from "../../forms/FileInput";
+import { supabase } from "../../../lib/supabaseClient";
 import "./EnrollmentFormPage.css";
 
 interface CollegeOption {
@@ -35,6 +37,7 @@ export default function EnrollmentForm() {
     const [collegeOptions, setCollegeOptions] = useState<CollegeOption[]>([]);
     const [programOptions, setProgramOptions] = useState<ProgramOption[]>([]);
     const [filteredPrograms, setFilteredPrograms] = useState<ProgramOption[]>([]);
+    const [profileFile, setProfileFile] = useState<File | null>(null);
 
     const [alert, setAlert] = useState({
         show: false,
@@ -146,10 +149,48 @@ export default function EnrollmentForm() {
         }
     }, [college, programOptions]);
 
+    /** Upload profile picture to Supabase or storage */
+    const uploadProfilePicture = async (file: File | null, id: string): Promise<string | null> => {
+        if (!file) return null;
+        const extension = file.name.split(".").pop();
+        if (!extension) return null;
+        const fileName = encodeURIComponent(`${id}.${extension}`);
+
+        const { data, error } = await supabase.storage
+            .from('profile')
+            .upload(`students/${fileName}`, file, { upsert: true });
+
+        console.log("Supabase upload response:", { data, error });
+
+        if (error) {
+            showAlert("danger", "Failed to upload profile picture.");
+            return null;
+        }
+
+        return `students/${fileName}`;
+    };
+
     /** Enroll student */
     const handleEnrollStudent = async () => {
+        // Validate required fields
         if (!idNumber || !firstName || !lastName || !gender || !yearLevel || !program || !college) {
             showAlert("warning", "Please fill out all required fields.");
+            return;
+        }
+
+        // Validate ID number pattern
+        const idPattern = /^\d{4}-\d{4}$/;
+        if (!idPattern.test(idNumber)) {
+            showAlert("warning", "ID must be in the format 1234-5678");
+            return; // stop further execution
+        }
+
+        // Upload profile picture first
+        const profile_image_path = await uploadProfilePicture(profileFile, idNumber);
+
+        // Stop enrollment if upload failed
+        if (profileFile && !profile_image_path) {
+            // The file was selected but upload failed
             return;
         }
 
@@ -165,6 +206,7 @@ export default function EnrollmentForm() {
                     gender,
                     year_level: parseInt(yearLevel, 10),
                     program_code: program,
+                    profile_image_path, // include uploaded file path
                 }),
             });
 
@@ -180,6 +222,7 @@ export default function EnrollmentForm() {
                 setYearLevel("");
                 setProgram("");
                 setCollege("");
+                setProfileFile(null);
             }
         } catch {
             showAlert("danger", "Error connecting to the server.");
@@ -274,6 +317,13 @@ export default function EnrollmentForm() {
                     onChange={(_, val) => setIdNumber(val)}
                     pattern={/^\d{4}-\d{4}$/}
                     patternMessage="ID must be in the format 1234-5678"
+                />
+
+                <FileInput
+                    label="Profile Picture"
+                    accept="image/*"
+                    value={profileFile}
+                    onChange={(file) => setProfileFile(file)}
                 />
             </FormHolder>
 

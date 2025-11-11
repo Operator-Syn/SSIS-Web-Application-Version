@@ -6,19 +6,6 @@ student_add_bp = Blueprint("student_add", __name__, url_prefix="/api/students/ad
 
 @student_add_bp.route("", methods=["POST"])
 def add_student():
-    """
-    Endpoint for adding a new student record.
-    Expected JSON payload:
-        {
-            "id_number": "202500001",
-            "first_name": "John",
-            "middle_name": "R",
-            "last_name": "Doe",
-            "gender": "Male",
-            "year_level": 1,
-            "program_code": "BSCS"
-        }
-    """
     try:
         data = request.get_json(force=True)
         id_number = data.get("id_number", "").strip()
@@ -28,6 +15,7 @@ def add_student():
         gender = data.get("gender", "").strip()
         year_level = data.get("year_level")
         program_code = data.get("program_code", "").strip()
+        profile_image_path = data.get("profile_image_path") 
 
         # Input validation
         if not id_number or not first_name or not last_name or not gender or not year_level or not program_code:
@@ -43,7 +31,8 @@ def add_student():
             last_name=last_name,
             gender=gender,
             year_level=year_level,
-            program_code=program_code
+            program_code=program_code,
+            profile_image_path=profile_image_path 
         )
 
         status_code = 201 if result["success"] else 400

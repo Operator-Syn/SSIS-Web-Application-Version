@@ -6,6 +6,7 @@ import UpdateEnrollment from "../components/pages/enrollmentFormsPage/UpdateForm
 import ManagementPage from "../components/pages/managementPage/ManagementPage";
 import LoginPage from "../components/loginPage/login"
 import HomePage from "../components/pages/homePage/homepage";
+import { supabase } from "../lib/supabaseClient";
 
 import LogoImage from "../assets/Logo.png";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -58,12 +59,29 @@ export interface Student {
     yearLevel: number;
     collegeName: string;
     program: string;
+    imagePath?: string | null;
 }
 
 // ---------- Student Table Columns ----------
 const studentColumnHelper = createColumnHelper<Student>();
 
 export const studentColumns = [
+    studentColumnHelper.accessor("imagePath", {
+        header: "Photo",
+        cell: (info) => {
+            const path = info.getValue();
+            if (!path) return createElement("p", { className: "m-0 p-2 text-center text-muted" }, "-");
+
+            const url = supabase.storage
+                .from("student-photos")
+                .getPublicUrl(path).data.publicUrl;
+
+            return createElement("img", {
+                src: url,
+                className: "w-12 h-12 rounded-full object-cover",
+            });
+        },
+    }),
     studentColumnHelper.accessor("id", {
         header: "ID Number",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
