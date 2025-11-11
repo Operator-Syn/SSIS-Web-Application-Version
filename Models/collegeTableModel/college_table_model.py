@@ -7,7 +7,7 @@ class CollegeModel:
     }
 
     @staticmethod
-    def get_colleges(order_by="college_code", direction="ASC", limit=5, offset=0, filters={}):
+    def get_colleges(order_by="college_code", direction="ASC", filters={}):
         base_query = """
             SELECT 
                 c.college_code,
@@ -26,8 +26,7 @@ class CollegeModel:
             base_query += " WHERE " + " AND ".join(where_clauses)
 
         order_column = CollegeModel.column_map.get(order_by, "c.college_code")
-        base_query += f" ORDER BY {order_column} {direction} LIMIT %s OFFSET %s"
-        values.extend([limit, offset])
+        base_query += f" ORDER BY {order_column} {direction}"
 
         rows = DBUtils.execute_query(base_query, tuple(values), fetch=True)
         columns = list(CollegeModel.column_map.keys())

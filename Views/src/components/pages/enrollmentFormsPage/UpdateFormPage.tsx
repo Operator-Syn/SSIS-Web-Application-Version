@@ -133,6 +133,19 @@
             if (!file) return null;
             const extension = file.name.split(".").pop();
             if (!extension) return null;
+
+            // Delete old files with this ID
+            const { data: existingFiles, error: listError } = await supabase.storage
+                .from('profile')
+                .list('students');
+
+            if (!listError && existingFiles) {
+                const oldFiles = existingFiles.filter(f => f.name.startsWith(id));
+                for (const oldFile of oldFiles) {
+                    await supabase.storage.from('profile').remove([`students/${oldFile.name}`]);
+                }
+            }
+
             const fileName = encodeURIComponent(`${id}.${extension}`);
 
             const { error } = await supabase.storage
@@ -234,7 +247,7 @@
             }
 
             // Prepare payload
-            const payload = {
+            const payload: Record<string, any> = {
                 id_number: idNumber,
                 new_first_name: firstName,
                 new_middle_name: middleName,
@@ -242,8 +255,17 @@
                 new_gender: gender,
                 new_year_level: parseInt(yearLevel, 10),
                 new_program_code: program,
-                new_image_path: profile_image_path || "" // optional
             };
+
+            if (profileFile) {
+                const profile_image_path = await uploadProfilePicture(profileFile, idNumber);
+                if (!profile_image_path) {
+                    // upload failed; stop update
+                    return;
+                }
+                payload.new_image_path = profile_image_path;
+            }
+
 
             try {
                 const res = await fetch("/api/students/update", {
@@ -296,7 +318,31 @@
 
         /** Step 2: Perform deletion */
         const confirmDelete = async () => {
+            if (!idNumber) return;
+
             try {
+                // Step 1: Remove profile images from Supabase
+                const { data: existingFiles, error: listError } = await supabase.storage
+                    .from("profile")
+                    .list("students");
+
+                if (!listError && existingFiles) {
+                    const filesToDelete = existingFiles
+                        .filter(f => f.name.startsWith(idNumber))
+                        .map(f => `students/${f.name}`);
+
+                    if (filesToDelete.length > 0) {
+                        const { error: deleteError } = await supabase.storage
+                            .from("profile")
+                            .remove(filesToDelete);
+
+                        if (deleteError) {
+                            showAlert("warning", "Failed to delete some profile images.");
+                        }
+                    }
+                }
+
+                // Step 2: Delete student record
                 const res = await fetch("/api/students/delete", {
                     method: "DELETE",
                     headers: { "Content-Type": "application/json" },
@@ -316,8 +362,9 @@
                     setYearLevel("");
                     setCollege("");
                     setProgram("");
-                    setFilteredPrograms(programOptions); // reset filtered programs
+                    setFilteredPrograms(programOptions);
                     setStudentList([]);
+                    setProfileFile(null);
                 }
             } catch {
                 showAlert("danger", "Error connecting to the server.");
@@ -425,12 +472,14 @@
 
                 <FormHolder>
                     <SelectForm label="College" options={collegeOptions} value={college} onChange={handleSelectCollege} />
-                                    <FileInput
-                                        label="Profile Picture"
-                                        accept="image/*"
-                                        value={profileFile}
-                                        onChange={(file) => setProfileFile(file)}
-                                    />
+                    <FileInput
+                        label="Profile Picture"
+                        accept="image/png, image/jpeg, image/jpg"
+                        value={profileFile}
+                        onChange={(file) => setProfileFile(file)}
+                        showAlert={showAlert}
+                        maxSizeMB={5}
+                    />
                     <SelectForm label="Program" options={filteredPrograms} value={program} onChange={handleSelectProgram} />
                 </FormHolder>
 

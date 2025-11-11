@@ -9,7 +9,7 @@ class ProgramModel:
     }
 
     @staticmethod
-    def get_programs(order_by="program_code", direction="ASC", limit=5, offset=0, filters={}):
+    def get_programs(order_by="program_code", direction="ASC", filters={}):
         base_query = """
             SELECT
                 p.program_code,
@@ -22,7 +22,7 @@ class ProgramModel:
         where_clauses = []
         values = []
 
-        # Apply filters based on column_map
+        # Apply filters
         for key, value in filters.items():
             if key in ProgramModel.column_map:
                 where_clauses.append(f"{ProgramModel.column_map[key]} = %s")
@@ -32,16 +32,22 @@ class ProgramModel:
             base_query += " WHERE " + " AND ".join(where_clauses)
 
         order_column = ProgramModel.column_map.get(order_by, "p.program_code")
-        base_query += f" ORDER BY {order_column} {direction} LIMIT %s OFFSET %s"
-        values.extend([limit, offset])
+        base_query += f" ORDER BY {order_column} {direction}"
 
         rows = DBUtils.execute_query(base_query, tuple(values), fetch=True)
         columns = list(ProgramModel.column_map.keys())
+
+        # FIXED: closed the bracket correctly
         return [dict(zip(columns, row)) for row in rows]
 
     @staticmethod
     def get_count(filters={}):
-        base_query = "SELECT COUNT(*) FROM programs p"
+        base_query = """
+            SELECT COUNT(*)
+            FROM programs p
+            JOIN colleges c ON p.college_code = c.college_code
+        """
+
         where_clauses = []
         values = []
 
@@ -53,4 +59,5 @@ class ProgramModel:
         if where_clauses:
             base_query += " WHERE " + " AND ".join(where_clauses)
 
-        return DBUtils.execute_query(base_query, tuple(values), fetch=True)[0][0]
+        result = DBUtils.execute_query(base_query, tuple(values), fetch=True)
+        return result[0][0]

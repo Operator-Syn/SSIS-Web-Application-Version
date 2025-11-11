@@ -55,11 +55,10 @@ class StudentUpdateModel:
             if new_program_code is not None:
                 fields.append("program_code = %s")
                 params.append(new_program_code)
+            # Only update profile_image_path if the frontend actually sent a value
             if new_image_path is not None:
-                if new_image_path == "":
-                    new_image_path = None
-                fields.append("profile_image_path = %s") 
-                params.append(new_image_path)
+                fields.append("profile_image_path = %s")
+                params.append(new_image_path if new_image_path != "" else None)
             if not fields:
                 return {"success": False, "message": "No fields to update."}
 

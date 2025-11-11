@@ -5,16 +5,16 @@ college_bp = Blueprint("colleges", __name__)
 
 @college_bp.route("/api/colleges", methods=["GET"])
 def colleges_route():
-    # Parse query parameters
     params = request.args.to_dict()
-    limit = int(params.pop("limit", 20))
-    offset = int(params.pop("offset", 0))
+
+    # No limit, no offset
     order_by = params.pop("order_by", "college_code")
     direction = params.pop("direction", "ASC").upper()
-    filters = params  # Remaining parameters are treated as filters
+
+    filters = params  # Everything else = filters
 
     try:
-        rows = CollegeModel.get_colleges(order_by, direction, limit, offset, filters)
+        rows = CollegeModel.get_colleges(order_by, direction, filters)
         total_count = CollegeModel.get_count(filters)
         return jsonify({"rows": rows, "totalCount": total_count})
     except Exception as e:

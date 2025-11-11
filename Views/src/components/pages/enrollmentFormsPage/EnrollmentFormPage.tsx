@@ -321,9 +321,11 @@ export default function EnrollmentForm() {
 
                 <FileInput
                     label="Profile Picture"
-                    accept="image/*"
+                    accept="image/png, image/jpeg, image/jpg"
                     value={profileFile}
                     onChange={(file) => setProfileFile(file)}
+                    showAlert={showAlert}
+                    maxSizeMB={5}
                 />
             </FormHolder>
 
