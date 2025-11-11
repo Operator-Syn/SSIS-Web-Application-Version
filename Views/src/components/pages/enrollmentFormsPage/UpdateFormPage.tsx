@@ -5,6 +5,8 @@
     import SelectForm from "../../forms/SelectForm";
     import HeaderToolbar from "../../forms/HeaderToolbar";
     import AlertBanner from "../../alertBanner/AlertBanner";
+    import FileInput from "../../forms/FileInput";
+    import { supabase } from "../../../lib/supabaseClient";
     import "./EnrollmentFormPage.css";
 
     interface CollegeOption {
@@ -43,6 +45,7 @@
         const [programOptions, setProgramOptions] = useState<ProgramOption[]>([]);
         const [filteredPrograms, setFilteredPrograms] = useState<ProgramOption[]>([]);
         const [studentList, setStudentList] = useState<StudentOption[]>([]);
+        const [profileFile, setProfileFile] = useState<File | null>(null);
 
         // Lazy-load and debounce
         const [searchQuery, setSearchQuery] = useState("");
@@ -125,6 +128,25 @@
             showAlert("info", "You are now in the Update Form.");
         }, []);
 
+        /** Upload profile picture to Supabase or storage */
+        const uploadProfilePicture = async (file: File | null, id: string): Promise<string | null> => {
+            if (!file) return null;
+            const extension = file.name.split(".").pop();
+            if (!extension) return null;
+            const fileName = encodeURIComponent(`${id}.${extension}`);
+
+            const { error } = await supabase.storage
+                .from('profile')
+                .upload(`students/${fileName}`, file, { upsert: true });
+
+            if (error) {
+                showAlert("danger", "Failed to upload profile picture.");
+                return null;
+            }
+
+            return `students/${fileName}`;
+        };
+
         /** Filter programs when a college is selected */
         const handleSelectCollege = (collegeCode: string) => {
             setCollege(collegeCode);
@@ -197,24 +219,37 @@
 
         /** Update student info */
         const handleUpdate = async () => {
+
             if (!idNumber || !firstName || !lastName || !gender || !yearLevel || !program || !college) {
                 showAlert("warning", "Please fill out all required fields before updating.");
                 return;
             }
 
+            // Upload profile picture first
+            const profile_image_path = await uploadProfilePicture(profileFile, idNumber);
+
+            // Stop enrollment if upload failed
+            if (profileFile && !profile_image_path) {
+                return;
+            }
+
+            // Prepare payload
+            const payload = {
+                id_number: idNumber,
+                new_first_name: firstName,
+                new_middle_name: middleName,
+                new_last_name: lastName,
+                new_gender: gender,
+                new_year_level: parseInt(yearLevel, 10),
+                new_program_code: program,
+                new_image_path: profile_image_path || "" // optional
+            };
+
             try {
-                const res = await fetch("z/api/students/update", {
+                const res = await fetch("/api/students/update", {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        id_number: idNumber,
-                        new_first_name: firstName,
-                        new_middle_name: middleName,
-                        new_last_name: lastName,
-                        new_gender: gender,
-                        new_year_level: parseInt(yearLevel, 10),
-                        new_program_code: program,
-                    }),
+                    body: JSON.stringify(payload),
                 });
 
                 const data = await res.json();
@@ -230,8 +265,9 @@
                     setYearLevel("");
                     setCollege("");
                     setProgram("");
-                    setFilteredPrograms(programOptions); // reset filtered programs
+                    setFilteredPrograms(programOptions);
                     setStudentList([]);
+                    setProfileFile(null);
                 }
             } catch {
                 showAlert("danger", "Error connecting to the server.");
@@ -389,6 +425,12 @@
 
                 <FormHolder>
                     <SelectForm label="College" options={collegeOptions} value={college} onChange={handleSelectCollege} />
+                                    <FileInput
+                                        label="Profile Picture"
+                                        accept="image/*"
+                                        value={profileFile}
+                                        onChange={(file) => setProfileFile(file)}
+                                    />
                     <SelectForm label="Program" options={filteredPrograms} value={program} onChange={handleSelectProgram} />
                 </FormHolder>
 

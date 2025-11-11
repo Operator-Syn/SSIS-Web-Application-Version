@@ -15,18 +15,15 @@ def update_student():
         "new_last_name": "Cruz",
         "new_gender": "Male",
         "new_year_level": 3,
-        "new_program_code": "BSCS"
+        "new_program_code": "BSCS",
+        "new_image_path": "students/202300001.jpg"
     }
     """
     try:
         data = request.get_json()
 
-        # Input validation
         if not data:
-            return jsonify({
-                "success": False,
-                "message": "Missing JSON body."
-            }), 400
+            return jsonify({"success": False, "message": "Missing JSON body."}), 400
 
         id_number = data.get("id_number")
         new_first_name = data.get("new_first_name")
@@ -35,6 +32,7 @@ def update_student():
         new_gender = data.get("new_gender")
         new_year_level = data.get("new_year_level")
         new_program_code = data.get("new_program_code")
+        new_image_path = data.get("new_image_path") 
 
         result = StudentUpdateModel.update_student(
             id_number=id_number,
@@ -43,7 +41,8 @@ def update_student():
             new_last_name=new_last_name,
             new_gender=new_gender,
             new_year_level=new_year_level,
-            new_program_code=new_program_code
+            new_program_code=new_program_code,
+            new_image_path=new_image_path  
         )
 
         status_code = 200 if result["success"] else 400

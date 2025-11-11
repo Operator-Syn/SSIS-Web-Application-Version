@@ -70,16 +70,26 @@ export const studentColumns = [
         header: "Photo",
         cell: (info) => {
             const path = info.getValue();
-            if (!path) return createElement("p", { className: "m-0 p-2 text-center text-muted" }, "-");
+            if (!path)
+                return createElement(
+                    "p",
+                    { className: "m-0 p-2 text-center text-muted" },
+                    "-"
+                );
 
-            const url = supabase.storage
-                .from("student-photos")
-                .getPublicUrl(path).data.publicUrl;
+            const { data } = supabase.storage.from("profile").getPublicUrl(path);
+            const url = data.publicUrl;
 
-            return createElement("img", {
-                src: url,
-                className: "w-12 h-12 rounded-full object-cover",
-            });
+            return createElement(
+                "div",
+                { className: "d-flex justify-content-center align-items-center" }, // centers content
+                createElement("img", {
+                    src: url,
+                    className: "rounded-circle",
+                    style: { width: "75px", height: "75px", objectFit: "cover" },
+                    alt: "Profile photo",
+                })
+            );
         },
     }),
     studentColumnHelper.accessor("id", {

@@ -77,6 +77,7 @@ class StudentSearchModel:
                 s.gender,
                 s.year_level,
                 s.program_code,
+                s.profile_image_path,      -- ADD THIS LINE
                 p.program_name AS program_name,
                 c.college_name AS college_name
             {base_query}
@@ -84,6 +85,7 @@ class StudentSearchModel:
             ORDER BY {order_by} {direction}
             LIMIT %s OFFSET %s
         """
+
         rows = DBUtils.execute_query(data_query, params + [limit, offset], fetch=True)
 
         result_rows = []
@@ -96,8 +98,9 @@ class StudentSearchModel:
                 "gender": r[4],
                 "year_level": r[5],
                 "program_code": r[6],
-                "program_name": r[7],
-                "college_name": r[8],
+                "profile_image_path": r[7],   # ADD THIS LINE
+                "program_name": r[8],
+                "college_name": r[9],
             })
 
 

@@ -9,22 +9,11 @@ class StudentUpdateModel:
         new_last_name: str = None,
         new_gender: str = None,
         new_year_level: int = None,
-        new_program_code: str = None
+        new_program_code: str = None,
+        new_image_path: str = None
     ):
         """
         Updates an existing student record in the database.
-
-        Args:
-            id_number (str): Student ID number (primary key).
-            new_first_name (str): Updated first name.
-            new_middle_name (str): Updated middle name.
-            new_last_name (str): Updated last name.
-            new_gender (str): Updated gender.
-            new_year_level (int): Updated year level.
-            new_program_code (str): Updated program code (FK).
-
-        Returns:
-            dict: { "success": bool, "message": str }
         """
         if not id_number:
             return {"success": False, "message": "id_number is required."}
@@ -47,25 +36,30 @@ class StudentUpdateModel:
             fields = []
             params = []
 
-            if new_first_name:
+            # Only skip None; allow empty strings for middle name or image path
+            if new_first_name is not None:
                 fields.append("first_name = %s")
                 params.append(new_first_name)
-            if new_middle_name is not None:  
+            if new_middle_name is not None:
                 fields.append("middle_name = %s")
                 params.append(new_middle_name)
-            if new_last_name:
+            if new_last_name is not None:
                 fields.append("last_name = %s")
                 params.append(new_last_name)
-            if new_gender:
+            if new_gender is not None:
                 fields.append("gender = %s")
                 params.append(new_gender)
-            if new_year_level:
+            if new_year_level is not None:
                 fields.append("year_level = %s")
                 params.append(new_year_level)
-            if new_program_code:
+            if new_program_code is not None:
                 fields.append("program_code = %s")
                 params.append(new_program_code)
-
+            if new_image_path is not None:
+                if new_image_path == "":
+                    new_image_path = None
+                fields.append("profile_image_path = %s") 
+                params.append(new_image_path)
             if not fields:
                 return {"success": False, "message": "No fields to update."}
 
