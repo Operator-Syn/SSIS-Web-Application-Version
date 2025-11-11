@@ -234,7 +234,7 @@
             }
 
             // Prepare payload
-            const payload = {
+            const payload: Record<string, any> = {
                 id_number: idNumber,
                 new_first_name: firstName,
                 new_middle_name: middleName,
@@ -242,8 +242,17 @@
                 new_gender: gender,
                 new_year_level: parseInt(yearLevel, 10),
                 new_program_code: program,
-                new_image_path: profile_image_path || "" // optional
             };
+
+            if (profileFile) {
+                const profile_image_path = await uploadProfilePicture(profileFile, idNumber);
+                if (!profile_image_path) {
+                    // upload failed; stop update
+                    return;
+                }
+                payload.new_image_path = profile_image_path;
+            }
+
 
             try {
                 const res = await fetch("/api/students/update", {
