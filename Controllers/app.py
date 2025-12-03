@@ -4,21 +4,9 @@ import os
 from config import Config
 
 # Existing controllers
-from Controllers.student_table_controller import student_bp 
-from Controllers.student_search_controller import student_search_bp
-from Controllers.college_table_controller import college_bp
-from Controllers.college_search_controller import college_search_bp
-from Controllers.program_table_controller import program_bp
-from Controllers.program_search_controller import program_search_bp
-from Controllers.college_add_controller import college_add_bp
-from Controllers.college_update_controller import college_update_bp
-from Controllers.college_delete_controller import college_delete_bp
-from Controllers.program_add_controller import program_add_bp
-from Controllers.program_update_controller import program_update_bp
-from Controllers.program_delete_controller import program_delete_bp
-from Controllers.student_add_controller import student_add_bp
-from Controllers.student_update_controller import student_update_bp
-from Controllers.student_delete_controller import student_delete_bp
+from Controllers.college_routes_controller import register_college_routes
+from Controllers.program_routes_controller import register_program_routes
+from Controllers.student_routes_controller import register_student_routes
 
 # Authentication controller
 from Controllers.auth_user_controller import auth_bp
@@ -28,23 +16,9 @@ app = Flask(__name__, static_folder=Config.REACT_DIST)
 app.secret_key = Config.SECRET_KEY  # required for session management
 
 # ---------- Register API routes ----------
-app.register_blueprint(college_bp)
-app.register_blueprint(college_search_bp)
-app.register_blueprint(college_add_bp)
-app.register_blueprint(college_update_bp)
-app.register_blueprint(college_delete_bp)
-
-app.register_blueprint(program_bp)
-app.register_blueprint(program_search_bp)
-app.register_blueprint(program_add_bp)
-app.register_blueprint(program_update_bp)
-app.register_blueprint(program_delete_bp)
-
-app.register_blueprint(student_bp)
-app.register_blueprint(student_search_bp)
-app.register_blueprint(student_add_bp)
-app.register_blueprint(student_update_bp)
-app.register_blueprint(student_delete_bp)
+register_college_routes(app)
+register_program_routes(app)
+register_student_routes(app)
 
 app.register_blueprint(auth_bp)
 
