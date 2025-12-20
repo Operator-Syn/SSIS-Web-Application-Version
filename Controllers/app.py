@@ -4,9 +4,9 @@ import os
 from config import Config
 
 # Existing controllers
-from Controllers.college_routes_controller import register_college_routes
-from Controllers.program_routes_controller import register_program_routes
-from Controllers.student_routes_controller import register_student_routes
+from Controllers.college_modules.college_operations import college_bp
+from Controllers.student_modules.student_operations import student_bp
+from Controllers.program_modules.program_operations import program_bp
 
 # Authentication controller
 from Controllers.auth_user_controller import auth_bp
@@ -16,9 +16,9 @@ app = Flask(__name__, static_folder=Config.REACT_DIST)
 app.secret_key = Config.SECRET_KEY  # required for session management
 
 # ---------- Register API routes ----------
-register_college_routes(app)
-register_program_routes(app)
-register_student_routes(app)
+app.register_blueprint(college_bp)
+app.register_blueprint(student_bp)
+app.register_blueprint(program_bp)
 
 app.register_blueprint(auth_bp)
 
