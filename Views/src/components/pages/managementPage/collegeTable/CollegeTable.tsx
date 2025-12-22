@@ -1,12 +1,25 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { Button } from "react-bootstrap"; 
 import InformationTable from "../../../dataTable/Table";
 import SearchBar from "../../../searchBar/SearchBar";
 import TableDropdown from "../../../dataTable/TableDropdown";
 import TablePagination from "../../../dataTable/TablePagination";
-import { sortByOptions, collegeColumns } from "../../../../data/Content";
+import { sortByOptions, getCollegeColumns } from "../../../../data/Content";
+import UpdateCollegeModal from "../collegeForm/UpdateCollege"; 
+import AddCollegeModal from "../collegeForm/RegisterCollege"; 
+
+// Make sure to import the CSS that contains the .skeleton-loading class
+// If it is global, you might not need this, but usually it is in the parent CSS
+import "../../studentDataPage/StudentDataPage.css"; 
 
 export default function CollegeTable() {
-    const [collegesCache, setCollegesCache] = useState<{ [key: string]: any[] }>({});
+    const [colleges, setColleges] = useState<any[]>([]);
+    
+    // --- Modal States ---
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+    const [showAddModal, setShowAddModal] = useState(false); 
+    const [selectedCollege, setSelectedCollege] = useState<{ collegeCode: string, collegeName: string } | null>(null);
+
     const [searchQuery, setSearchQuery] = useState("");
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 });
     const [pageCount, setPageCount] = useState(0);
@@ -14,20 +27,14 @@ export default function CollegeTable() {
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    const getCacheKey = (pageIndex: number, pageSize: number) => `${pageIndex}_${pageSize}`;
-
-    const fetchPage = useCallback(async (pageIndex: number) => {
-        const cacheKey = getCacheKey(pageIndex, pagination.pageSize);
-        if (collegesCache[cacheKey]) return;
-
+    const fetchPage = useCallback(async () => {
         setLoading(true);
-
         try {
             const params = new URLSearchParams({
-                order_by: "college_name", // ensure backend receives this
+                order_by: "college_name",
                 direction: direction,
                 limit: String(pagination.pageSize),
-                offset: String(pageIndex * pagination.pageSize),
+                offset: String(pagination.pageIndex * pagination.pageSize),
             });
             if (searchQuery) params.append("q", searchQuery);
 
@@ -35,29 +42,27 @@ export default function CollegeTable() {
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
             const data = await res.json();
 
-            // map API response to camelCase for table
             const mapped = data.rows.map((c: any) => ({
                 collegeCode: c.college_code,
                 collegeName: c.college_name,
             }));
 
-            setCollegesCache(prev => ({ ...prev, [cacheKey]: mapped }));
+            setColleges(mapped);
             setTotalCount(data.totalCount);
             setPageCount(Math.ceil(data.totalCount / pagination.pageSize));
         } catch (err) {
             console.error("Error fetching colleges:", err);
+            setColleges([]); 
         } finally {
             setLoading(false);
         }
-    }, [pagination.pageSize, direction, searchQuery, collegesCache]);
+    }, [pagination.pageIndex, pagination.pageSize, direction, searchQuery]);
 
     useEffect(() => {
-        fetchPage(pagination.pageIndex);
-        fetchPage(pagination.pageIndex + 1); // prefetch next
-    }, [pagination.pageIndex, pagination.pageSize, fetchPage]);
+        fetchPage();
+    }, [fetchPage]);
 
     useEffect(() => {
-        setCollegesCache({});
         setPagination(prev => ({ ...prev, pageIndex: 0 }));
     }, [searchQuery, direction, pagination.pageSize]);
 
@@ -65,39 +70,84 @@ export default function CollegeTable() {
         setSearchQuery(query);
     }, []);
 
-    const currentCacheKey = getCacheKey(pagination.pageIndex, pagination.pageSize);
-    const currentPageData = collegesCache[currentCacheKey] ?? [];
+    const handleUpdate = (code: string) => {
+        const college = colleges.find(c => c.collegeCode === code);
+        if (college) {
+            setSelectedCollege(college);
+            setShowUpdateModal(true);
+        }
+    };
+
+    const columns = useMemo(() => 
+        getCollegeColumns(handleUpdate), 
+    [colleges]);
+
+    // --- Loading Logic ---
+    // 1. Create empty placeholders to fill the table rows while loading
+    const placeholders = useMemo(() => {
+        return Array.from({ length: pagination.pageSize }).map((_, i) => ({
+            collegeCode: `loading-${i}`, 
+            collegeName: "",
+        }));
+    }, [pagination.pageSize]);
+
+    // 2. Switch between real data and placeholders
+    const tableData = loading ? placeholders : colleges;
 
     return (
         <div className="college-data-page">
-            <div className="d-flex flex-column flex-md-row gap-3 mb-3">
-                <SearchBar onSearch={handleSearch} placeholder="Search by College Code or College Name..." />
+            {/* --- Modals --- */}
+            <UpdateCollegeModal 
+                show={showUpdateModal}
+                handleClose={() => setShowUpdateModal(false)}
+                college={selectedCollege}
+                onSuccess={fetchPage} 
+            />
+            
+            <AddCollegeModal
+                show={showAddModal}
+                handleClose={() => setShowAddModal(false)}
+                onSuccess={fetchPage}
+            />
 
-                <TableDropdown
-                    buttonText="Sort Direction:"
-                    items={sortByOptions.map(opt => ({ label: opt.label }))}
-                    value={sortByOptions.find(opt => opt.value === direction)?.label}
-                    onSelect={label => {
-                        const selected = sortByOptions.find(opt => opt.label === label);
-                        if (selected) setDirection(selected.value);
-                    }}
-                />
+            {/* --- Controls Section --- */}
+            <div className="d-flex flex-column flex-md-row gap-3 mb-3 justify-content-between align-items-center">
+                <div className="flex-grow-1">
+                     <SearchBar onSearch={handleSearch} placeholder="Search by College Code or College Name..." />
+                </div>
+               
+                <div className="d-flex gap-2 shrink-0">
+                    <TableDropdown
+                        buttonText="Sort:"
+                        items={sortByOptions.map(opt => ({ label: opt.label }))}
+                        value={sortByOptions.find(opt => opt.value === direction)?.label}
+                        onSelect={label => {
+                            const selected = sortByOptions.find(opt => opt.label === label);
+                            if (selected) setDirection(selected.value);
+                        }}
+                    />
+                    
+                    <Button variant="success" onClick={() => setShowAddModal(true)} className="text-nowrap">
+                        + Add College
+                    </Button>
+                </div>
             </div>
 
-            {loading ? (
-                <p>Loading colleges...</p>
-            ) : (
+            {/* --- Table with Loading State --- */}
+            {/* 3. Wrap in loading class */}
+            <div className={loading ? "skeleton-loading" : ""}>
                 <InformationTable
-                    data={currentPageData}
-                    columns={collegeColumns}
+                    data={tableData}
+                    columns={columns}
                     pageIndex={pagination.pageIndex}
                     pageSize={pagination.pageSize}
-                    totalCount={totalCount}
+                    // 4. Force count to 0 while loading so pagination doesn't look weird
+                    totalCount={loading ? 0 : totalCount} 
                     onPageChange={page => setPagination(prev => ({ ...prev, pageIndex: page }))}
                     onPageSizeChange={size => setPagination(prev => ({ ...prev, pageSize: size }))}
                     onPageCountChange={setPageCount}
                 />
-            )}
+            </div>
 
             <div className="d-flex p-2">
                 <TablePagination

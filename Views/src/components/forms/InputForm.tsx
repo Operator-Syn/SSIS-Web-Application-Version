@@ -13,9 +13,7 @@ interface InputFormProps {
     patternMessage?: string;
     placeholder?: string | string[];
     onBlur?: () => void | Promise<void>;
-
-    /** Optional datalist integration */
-    datalistOptions?: string[] | string[][]; // array of suggestions
+    datalistOptions?: string[] | string[][]; 
 }
 
 export default function InputForm(props: InputFormProps) {
@@ -51,17 +49,16 @@ export default function InputForm(props: InputFormProps) {
                     ? placeholder[i] ?? `Enter ${label}`
                     : placeholder ?? `Enter ${label}`;
 
-                // Generate a unique ID for datalist
                 const datalistId = `datalist-${label.replace(/\s+/g, "-").toLowerCase()}-${i}`;
 
-                // Get datalist options for this field
                 const list =
                     Array.isArray(datalistOptions) && Array.isArray(datalistOptions[0])
                         ? (datalistOptions as string[][])[i]
                         : (datalistOptions as string[] | undefined);
 
                 return (
-                    <Form.Group key={i} controlId={`input-${i}`} className="mb-md-3">
+                    // ADDED: w-100 to ensure the container spans full width
+                    <Form.Group key={i} controlId={`input-${i}`} className="mb-md-3 w-100">
                         <Form.Label>{label}</Form.Label>
                         <Form.Control
                             type="text"

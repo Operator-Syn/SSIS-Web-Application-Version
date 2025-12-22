@@ -2,9 +2,7 @@ import { useState } from "react";
 import Tabs from "../../tabs/Tabs";
 import CollegeTable from "./collegeTable/CollegeTable";
 import ProgramTable from "./programTable/ProgramTable";
-import RegisterCollege from "../managementPage/collegeForm/RegisterCollege";
 import RegisterProgram from "./programForm/RegisterProgram";
-import UpdateCollege from "./collegeForm/UpdateCollege";
 import UpdateProgram from "./programForm/UpdateProgram"
 
 export default function ManagementPage() {
@@ -12,8 +10,6 @@ export default function ManagementPage() {
 
     const nestedCollegeTab = [
         { id: "collegeTable", label: "College Table", content: <CollegeTable /> },
-        { id: "manageCollege", label: "Register College", content: <RegisterCollege/>},
-        { id: "updateCollege", label: "Update College", content: <UpdateCollege/> },
     ];
 
     const nestedProgramTab = [

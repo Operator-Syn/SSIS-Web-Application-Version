@@ -1,48 +1,48 @@
-import { useState, useEffect } from "react";
-import FormHolder from "../../../forms/FormHolder";
+import { useState } from "react";
+import { Modal, Button, Spinner } from "react-bootstrap";
 import InputForm from "../../../forms/InputForm";
-import HeaderToolbar from "../../../forms/HeaderToolbar";
-import AlertBanner, { type AlertBannerProps } from "../../../alertBanner/AlertBanner";
+import AlertBanner from "../../../alertBanner/AlertBanner";
 
-export default function EnrollmentForm() {
+interface AddCollegeModalProps {
+    show: boolean;
+    handleClose: () => void;
+    onSuccess: () => void;
+}
+
+export default function AddCollegeModal({ show, handleClose, onSuccess }: AddCollegeModalProps) {
     const [collegeName, setCollegeName] = useState("");
     const [collegeCode, setCollegeCode] = useState("");
+    const [isBusy, setIsBusy] = useState(false);
 
-    // Info banner when page loads
-    const [showBanner, setShowBanner] = useState(false);
-
-    // Alert state for success/error messages
-    const [alert, setAlert] = useState<{
-        show: boolean;
-        type: AlertBannerProps["type"];
-        message: string;
-    }>({
+    const [alert, setAlert] = useState({
         show: false,
-        type: "info",
+        type: "info" as "info" | "success" | "danger" | "warning",
         message: "",
     });
 
-    useEffect(() => {
-        setShowBanner(true);
-    }, []);
+    // Reset form when modal opens
+    const handleShow = () => {
+        setCollegeName("");
+        setCollegeCode("");
+        setAlert({ show: false, type: "info", message: "" });
+    };
 
-    // Handle college registration
     const handleRegister = async () => {
         if (!collegeName.trim() || !collegeCode.trim()) {
             setAlert({
                 show: true,
-                type: "danger", // use Bootstrap-compatible variant
+                type: "warning",
                 message: "Please fill in both College Name and College Code.",
             });
             return;
         }
 
+        setIsBusy(true);
+
         try {
             const response = await fetch("/api/colleges/add", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     college_code: collegeCode.trim(),
                     college_name: collegeName.trim(),
@@ -55,12 +55,13 @@ export default function EnrollmentForm() {
                 setAlert({
                     show: true,
                     type: "success",
-                    message: data.message || "College registered successfully!",
+                    message: "College registered successfully!",
                 });
-
-                // Reset form fields
-                setCollegeCode("");
-                setCollegeName("");
+                
+                setTimeout(() => {
+                    onSuccess(); // Refresh table
+                    handleClose(); // Close modal
+                }, 1000);
             } else {
                 setAlert({
                     show: true,
@@ -69,56 +70,68 @@ export default function EnrollmentForm() {
                 });
             }
         } catch (err) {
-            console.error("Error registering college:", err);
             setAlert({
                 show: true,
                 type: "danger",
                 message: "Server error. Please try again later.",
             });
+        } finally {
+            setIsBusy(false);
         }
     };
 
     return (
-        <div className="registerCollege-form-page">
-            <HeaderToolbar
-                leftText="College Registration Form"
-                rightButtons={[
-                    { label: "Register College", onClick: handleRegister, className: "btn-progress" },
-                ]}
-            />
-
-            {/* Info banner when page loads */}
-            <AlertBanner
-                message="You are now in the College Registration Form."
-                type="info"
-                show={showBanner}
-                onClose={() => setShowBanner(false)}
-            />
-
-            {/* Feedback banner for success or error */}
-            <AlertBanner
-                message={alert.message}
-                type={alert.type}
-                show={alert.show}
-                onClose={() => setAlert(prev => ({ ...prev, show: false }))}
-            />
-
-            <FormHolder>
-                <InputForm
-                    labels={["College Name"]}
-                    value={collegeName}
-                    onChange={(_, val) => setCollegeName(val)}
-                    pattern={/^(?!\s*$).+/}
-                    patternMessage="College Name cannot be empty"
+        <Modal 
+            show={show} 
+            onHide={isBusy ? undefined : handleClose}
+            onShow={handleShow}
+            size="lg"
+            centered 
+            backdrop="static"
+            keyboard={!isBusy}
+        >
+            <div style={{ position: "relative", zIndex: 1060 }}>
+                <AlertBanner
+                    message={alert.message}
+                    type={alert.type}
+                    show={alert.show}
+                    onClose={() => setAlert(prev => ({ ...prev, show: false }))}
                 />
-                <InputForm
-                    labels={["College Code"]}
-                    value={collegeCode}
-                    onChange={(_, val) => setCollegeCode(val)}
-                    pattern={/^(?!\s*$).+/}
-                    patternMessage="College Code cannot be empty"
-                />
-            </FormHolder>
-        </div>
+            </div>
+
+            <Modal.Header closeButton={!isBusy}>
+                <Modal.Title>Add New College</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <div className="d-flex flex-column gap-3">
+                    <InputForm
+                        labels={["College Name"]}
+                        value={collegeName}
+                        onChange={(_, val) => setCollegeName(val)}
+                        placeholder="e.g. College of Computer Studies"
+                        pattern={/^(?!\s*$).+/}
+                        patternMessage="College Name cannot be empty"
+                        className="w-100"
+                    />
+                    <InputForm
+                        labels={["College Code"]}
+                        value={collegeCode}
+                        onChange={(_, val) => setCollegeCode(val)}
+                        placeholder="e.g. CCS"
+                        pattern={/^(?!\s*$).+/}
+                        patternMessage="College Code cannot be empty"
+                        className="w-100"
+                    />
+                </div>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleClose} disabled={isBusy}>
+                    Cancel
+                </Button>
+                <Button variant="primary" onClick={handleRegister} disabled={isBusy}>
+                    {isBusy ? <><Spinner size="sm" animation="border" className="me-2"/>Saving...</> : "Add College"}
+                </Button>
+            </Modal.Footer>
+        </Modal>
     );
 }

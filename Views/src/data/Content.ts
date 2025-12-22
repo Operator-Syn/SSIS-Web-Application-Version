@@ -1,7 +1,8 @@
 import type { FC } from "react";
 import { createElement } from "react";
 import StudentData from "../components/pages/studentDataPage/StudentDataPage";
-import ManagementPage from "../components/pages/managementPage/ManagementPage";
+import CollegeTable from "../components/pages/managementPage/collegeTable/CollegeTable";
+import ProgramTable from "../components/pages/managementPage/programTable/ProgramTable";
 import LoginPage from "../components/loginPage/login"
 import HomePage from "../components/pages/homePage/homepage";
 import { supabase } from "../lib/supabaseClient";
@@ -30,9 +31,9 @@ export interface NavLinkItem {
 
 export const navLinks: NavLinkItem[] = [
     { name: "Homepage", path: "/", component: HomePage },
-    { name: "Student Data Information", path: "/student/information", component: StudentData },
-    { name: "Colleges", path: "/colleges", component: null },
-    { name: "Programs", path: "/management", component: ManagementPage },
+    { name: "Student Information", path: "/student/information", component: StudentData },
+    { name: "College Information", path: "/colleges", component: CollegeTable },
+    { name: "Program Information", path: "/programs", component: ProgramTable },
 ];
 
 export const hiddenRoutes: NavLinkItem[] = [
@@ -55,7 +56,6 @@ export interface Student {
 // ---------- Student Table Columns ----------
 const studentColumnHelper = createColumnHelper<Student>();
 
-// Changed to a function to accept action handlers from your component
 export const getStudentColumns = (onUpdate: (id: string) => void, onDelete: (id: string) => void) => [
     studentColumnHelper.accessor("imagePath", {
         header: "Photo",
@@ -107,7 +107,6 @@ export const getStudentColumns = (onUpdate: (id: string) => void, onDelete: (id:
         header: "Program",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
-    // Replaced contextButtons with functional Action buttons
     studentColumnHelper.display({
         id: "actions",
         header: "Actions",
@@ -161,7 +160,8 @@ export interface College {
 // ---------- College Table Columns ----------
 const collegeColumnHelper = createColumnHelper<College>();
 
-export const collegeColumns = [
+// CHANGED: Only accepts 'onUpdate'. Delete is now handled inside the Update Modal.
+export const getCollegeColumns = (onUpdate: (code: string) => void) => [
     collegeColumnHelper.accessor("collegeName", {
         header: "College Name",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
@@ -170,7 +170,23 @@ export const collegeColumns = [
         header: "College Code",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
-]
+    // CHANGED: Only renders the Update button
+    collegeColumnHelper.display({
+        id: "actions",
+        header: "Actions",
+        cell: (info) => {
+            const college = info.row.original;
+            return createElement(
+                "div",
+                { className: "d-flex gap-2 justify-content-start" },
+                createElement("button", { 
+                    className: "btn btn-sm btn-primary", 
+                    onClick: () => onUpdate(college.collegeCode) 
+                }, "Update")
+            );
+        }
+    })
+];
 
 // ---------- Data Page Dropdown Options ----------
 export const sortByOptions = [

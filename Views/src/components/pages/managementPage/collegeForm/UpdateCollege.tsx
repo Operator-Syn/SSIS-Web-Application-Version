@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
-import FormHolder from "../../../forms/FormHolder";
+import { Modal, Button, Spinner } from "react-bootstrap";
 import InputForm from "../../../forms/InputForm";
-import SelectForm from "../../../forms/SelectForm";
-import HeaderToolbar from "../../../forms/HeaderToolbar";
 import AlertBanner from "../../../alertBanner/AlertBanner";
 
-export default function UpdateCollegeForm() {
+interface UpdateCollegeModalProps {
+    show: boolean;
+    handleClose: () => void;
+    college: { collegeCode: string; collegeName: string } | null;
+    onSuccess: () => void;
+}
+
+export default function UpdateCollegeModal({ show, handleClose, college, onSuccess }: UpdateCollegeModalProps) {
     const [collegeName, setCollegeName] = useState("");
-    const [collegeCode, setCollegeCode] = useState("");
-    const [collegeOptions, setCollegeOptions] = useState<
-        { label: string; value: string; name: string }[]
-    >([]);
+    const [isBusy, setIsBusy] = useState(false);
 
     const [alert, setAlert] = useState({
         show: false,
@@ -25,41 +27,23 @@ export default function UpdateCollegeForm() {
         }[],
     });
 
-    /** Load colleges for dropdown */
-    const loadColleges = async () => {
-        try {
-            const res = await fetch("/api/colleges");
-            const data = await res.json();
-
-            if (Array.isArray(data.rows)) {
-                const options = data.rows.map((c: any) => ({
-                    label: `${c.college_code} - ${c.college_name}`,
-                    value: c.college_code,
-                    name: c.college_name,
-                }));
-                setCollegeOptions(options);
-            } else {
-                showAlert("danger", "Failed to load colleges.");
-            }
-        } catch {
-            showAlert("danger", "Error fetching college list.");
-        }
-    };
-
     useEffect(() => {
-        loadColleges();
-    }, []);
+        if (college) {
+            setCollegeName(college.collegeName);
+            setAlert({ 
+                show: false, 
+                type: "info", 
+                title: "Notice", 
+                message: "", 
+                buttons: [] 
+            });
+        }
+    }, [college, show]);
 
-    /** Reusable alert helper */
     const showAlert = (
         type: "info" | "success" | "danger" | "warning",
         message: string,
-        buttons?: {
-            label: string;
-            variant?: string;
-            onClick?: () => void;
-            closeOnClick?: boolean;
-        }[],
+        buttons?: { label: string; variant?: string; onClick?: () => void; closeOnClick?: boolean }[],
         title?: string
     ) => {
         setAlert({
@@ -67,142 +51,129 @@ export default function UpdateCollegeForm() {
             type,
             title: title || "Notice",
             message,
-            buttons: buttons || [
-                { label: "Close", variant: type, closeOnClick: true },
-            ],
+            buttons: buttons || [],
         });
     };
 
-    /** Autofill college name when a code is selected */
-    const handleSelectCollege = (code: string) => {
-        setCollegeCode(code);
-        const selected = collegeOptions.find((opt) => opt.value === code);
-        setCollegeName(selected ? selected.name : "");
-    };
-
-    /** Update college name */
+    // --- UPDATE ---
     const handleUpdateCollege = async () => {
-        if (!collegeCode || !collegeName) {
-            showAlert(
-                "warning",
-                "Please select a college and enter a new name."
-            );
+        if (!college || !collegeName.trim()) {
+            showAlert("warning", "College Name cannot be empty.");
             return;
         }
-
+        setIsBusy(true);
         try {
             const res = await fetch("/api/colleges/update", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    college_code: collegeCode,
+                    college_code: college.collegeCode,
                     new_college_name: collegeName,
                 }),
             });
-
             const data = await res.json();
-            showAlert(
-                data.success ? "success" : "danger",
-                data.message
-            );
-
             if (data.success) {
-                await loadColleges();
-                setCollegeCode("");
-                setCollegeName("");
+                showAlert("success", "College updated successfully!");
+                setTimeout(() => { onSuccess(); handleClose(); }, 1000);
+            } else {
+                showAlert("danger", data.message || "Update failed.");
             }
         } catch {
             showAlert("danger", "Error connecting to the server.");
+        } finally {
+            setIsBusy(false);
         }
     };
 
-    /** Step 1: Ask for confirmation */
-    const handleDeleteCollege = () => {
-        if (!collegeCode) {
-            showAlert("warning", "Please select a college to delete.");
-            return;
-        }
-
-        const selected = collegeOptions.find((opt) => opt.value === collegeCode);
-        const collegeLabel = selected ? selected.label : collegeCode;
-
+    // --- DELETE ---
+    const handleDeleteClick = () => {
+        if (!college) return;
         showAlert(
             "warning",
-            `Are you sure you want to delete ${collegeLabel}? This action cannot be undone.`,
+            `Are you sure you want to delete ${college.collegeCode}? This cannot be undone.`,
             [
                 { label: "Cancel", variant: "secondary", closeOnClick: true },
-                {
-                    label: "Delete",
-                    variant: "danger",
-                    onClick: confirmDeleteCollege,
-                    closeOnClick: true,
-                },
+                { label: "Confirm Delete", variant: "danger", onClick: performDelete, closeOnClick: true },
             ],
             "Confirm Deletion"
         );
     };
 
-    /** Step 2: Perform deletion once confirmed */
-    const confirmDeleteCollege = async () => {
+    const performDelete = async () => {
+        if (!college) return;
+        setIsBusy(true);
         try {
             const res = await fetch("/api/colleges/delete", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ college_code: collegeCode }),
+                body: JSON.stringify({ college_code: college.collegeCode }),
             });
-
             const data = await res.json();
-            showAlert(
-                data.success ? "success" : "danger",
-                data.message
-            );
-
             if (data.success) {
-                await loadColleges();
-                setCollegeCode("");
-                setCollegeName("");
+                showAlert("success", "College deleted successfully.");
+                setTimeout(() => { onSuccess(); handleClose(); }, 1000);
+            } else {
+                showAlert("danger", data.message || "Delete failed.");
             }
         } catch {
             showAlert("danger", "Error connecting to the server.");
+        } finally {
+            setIsBusy(false);
         }
     };
 
     return (
-        <div className="updateCollege-form-page">
-            <HeaderToolbar
-                leftText="Update College Form"
-                rightButtons={[
-                    { label: "Update College", onClick: handleUpdateCollege, className: "btn-progress" },
-                    { label: "Delete College", className: "btn-danger", onClick: handleDeleteCollege},
-                ]}
-            />
-
-            <AlertBanner
-                message={alert.message}
-                type={alert.type}
-                title={alert.title}
-                show={alert.show}
-                onClose={() =>
-                    setAlert((prev) => ({ ...prev, show: false }))
-                }
-                buttons={alert.buttons}
-            />
-
-            <FormHolder>
-                <SelectForm
-                    label="Select College Code"
-                    options={collegeOptions}
-                    value={collegeCode}
-                    onChange={handleSelectCollege}
+        <Modal 
+            show={show} 
+            onHide={isBusy ? undefined : handleClose} 
+            size="lg"
+            centered 
+            backdrop="static"
+            keyboard={!isBusy}
+        >
+            <div style={{ position: "relative", zIndex: 1060 }}>
+                <AlertBanner
+                    message={alert.message}
+                    type={alert.type}
+                    title={alert.title}
+                    show={alert.show}
+                    onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+                    buttons={alert.buttons}
                 />
-                <InputForm
-                    labels={["College Name"]}
-                    value={collegeName}
-                    onChange={(_, val) => setCollegeName(val)}
-                    pattern={/^(?!\s*$).+/}
-                    patternMessage="College Name cannot be empty"
-                />
-            </FormHolder>
-        </div>
+            </div>
+
+            <Modal.Header closeButton={!isBusy}>
+                <Modal.Title>Update College</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <div className="d-flex flex-column gap-3">
+                    <InputForm
+                        labels={["College Code"]}
+                        value={college?.collegeCode || ""}
+                        readOnly={true}
+                        className="bg-light w-100" 
+                    />
+                    <InputForm
+                        labels={["College Name"]}
+                        value={collegeName}
+                        onChange={(_, val) => setCollegeName(val)}
+                        pattern={/^(?!\s*$).+/}
+                        patternMessage="College Name cannot be empty"
+                        className="w-100"
+                    />
+                </div>
+            </Modal.Body>
+            <Modal.Footer className="d-flex justify-content-between">
+                <Button variant="danger" onClick={handleDeleteClick} disabled={isBusy}>
+                    Delete College
+                </Button>
+                <div className="d-flex gap-2">
+                    <Button variant="secondary" onClick={handleClose} disabled={isBusy}>Cancel</Button>
+                    <Button variant="primary" onClick={handleUpdateCollege} disabled={isBusy}>
+                        {isBusy ? <><Spinner size="sm" animation="border" className="me-2"/>Processing...</> : "Save Changes"}
+                    </Button>
+                </div>
+            </Modal.Footer>
+        </Modal>
     );
 }
