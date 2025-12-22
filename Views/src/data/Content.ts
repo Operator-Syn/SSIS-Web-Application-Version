@@ -1,8 +1,6 @@
 import type { FC } from "react";
 import { createElement } from "react";
 import StudentData from "../components/pages/studentDataPage/StudentDataPage";
-import EnrollmentForms from "../components/pages/enrollmentFormsPage/EnrollmentFormPage";
-import UpdateEnrollment from "../components/pages/enrollmentFormsPage/UpdateFormPage"
 import ManagementPage from "../components/pages/managementPage/ManagementPage";
 import LoginPage from "../components/loginPage/login"
 import HomePage from "../components/pages/homePage/homepage";
@@ -24,28 +22,20 @@ export const Logo: NavBarBrandProps = {
     logoSrc: LogoImage,
 };
 
-export interface NavBarProps {
-    brandName: string;
-    links: NavLinkItem[];
-}
-
 export interface NavLinkItem {
     name: string;
     path: string;
     component?: FC | null;
 }
 
-// Visible in navbar
 export const navLinks: NavLinkItem[] = [
     { name: "Homepage", path: "/", component: HomePage },
     { name: "Student Data Information", path: "/student/information", component: StudentData },
-    { name: "Enrollment Forms", path: "/student/enroll", component: EnrollmentForms },
-    { name: "Management", path: "/management", component: ManagementPage },
+    { name: "Colleges", path: "/colleges", component: null },
+    { name: "Programs", path: "/management", component: ManagementPage },
 ];
 
-// Hidden routes (not in navbar)
 export const hiddenRoutes: NavLinkItem[] = [
-    { name: "Update Forms", path: "/student/update", component: UpdateEnrollment },
     { name: "Login", path: "/login", component: LoginPage}
 ];
 
@@ -65,28 +55,21 @@ export interface Student {
 // ---------- Student Table Columns ----------
 const studentColumnHelper = createColumnHelper<Student>();
 
-export const studentColumns = [
+// Changed to a function to accept action handlers from your component
+export const getStudentColumns = (onUpdate: (id: string) => void, onDelete: (id: string) => void) => [
     studentColumnHelper.accessor("imagePath", {
         header: "Photo",
         cell: (info) => {
             const path = info.getValue();
-            if (!path)
-                return createElement(
-                    "p",
-                    { className: "m-0 p-2 text-center text-muted" },
-                    "-"
-                );
-
+            if (!path) return createElement("p", { className: "m-0 p-2 text-center text-muted" }, "-");
             const { data } = supabase.storage.from("profile").getPublicUrl(path);
-            const url = data.publicUrl;
-
             return createElement(
                 "div",
-                { className: "d-flex justify-content-center align-items-center" }, // centers content
+                { className: "d-flex justify-content-center align-items-center" },
                 createElement("img", {
-                    src: url,
+                    src: data.publicUrl,
                     className: "rounded-circle",
-                    style: { width: "75px", height: "75px", objectFit: "cover" },
+                    style: { width: "80px", height: "80px", objectFit: "cover" },
                     alt: "Profile photo",
                 })
             );
@@ -124,6 +107,26 @@ export const studentColumns = [
         header: "Program",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
+    // Replaced contextButtons with functional Action buttons
+    studentColumnHelper.display({
+        id: "actions",
+        header: "Actions",
+        cell: (info) => {
+            const student = info.row.original;
+            return createElement(
+                "div",
+                { className: "d-flex gap-2 justify-content-center" },
+                createElement("button", { 
+                    className: "btn btn-sm btn-primary", 
+                    onClick: () => onUpdate(student.id) 
+                }, "Update"),
+                createElement("button", { 
+                    className: "btn btn-sm btn-danger", 
+                    onClick: () => onDelete(student.id) 
+                }, "Delete")
+            );
+        }
+    })
 ];
 
 // ---------- Program Data Types ----------
@@ -133,9 +136,7 @@ export interface Program {
     collegeName: string;
 }
 
-// ---------- Program Table Columns ----------
 const programColumnHelper = createColumnHelper<Program>();
-
 export const programColumns = [
     programColumnHelper.accessor("programName", {
         header: "Program Name",

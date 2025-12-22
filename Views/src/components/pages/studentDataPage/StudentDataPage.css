@@ -6,3 +6,40 @@
     padding: 1rem;
     /* optional, gives breathing room from page edges */
 }
+
+/* StudentDataPage.css */
+
+/* When the table is in skeleton mode */
+.skeleton-loading {
+    pointer-events: none; /* Prevent clicking update/delete on fake rows */
+}
+
+/* Hide the actual content (text, buttons, images) inside the cells */
+.skeleton-loading tbody td > * {
+    opacity: 0; 
+}
+
+/* Create the pulsing gray bar overlay */
+.skeleton-loading tbody td {
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-loading tbody td::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    right: 10px;
+    height: 12px; /* Thickness of the skeleton bar */
+    background: #e0e0e0;
+    transform: translateY(-50%);
+    border-radius: 4px;
+    animation: skeleton-pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes skeleton-pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 0.3; }
+    100% { opacity: 0.6; }
+}
