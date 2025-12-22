@@ -332,7 +332,7 @@ export default function UpdateForm({ show, handleClose, initialId, onSuccess }: 
                     </fieldset>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="outline-danger" className="me-auto" onClick={handleDelete} disabled={isBusy}>
+                    <Button variant="danger" className="me-auto" onClick={handleDelete} disabled={isBusy}>
                         Remove Student
                     </Button>
                     <Button variant="secondary" onClick={handleClose} disabled={isBusy}>

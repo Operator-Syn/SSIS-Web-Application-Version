@@ -1,11 +1,17 @@
 import { useState, useEffect } from "react";
+import { Modal, Button } from "react-bootstrap";
 import FormHolder from "../../../forms/FormHolder";
 import InputForm from "../../../forms/InputForm";
 import SelectForm from "../../../forms/SelectForm";
-import HeaderToolbar from "../../../forms/HeaderToolbar";
 import AlertBanner from "../../../alertBanner/AlertBanner";
 
-export default function EnrollmentForm() {
+interface AddProgramModalProps {
+    show: boolean;
+    handleClose: () => void;
+    onSuccess: () => void;
+}
+
+export default function AddProgramModal({ show, handleClose, onSuccess }: AddProgramModalProps) {
     const [programName, setProgramName] = useState("");
     const [programCode, setProgramCode] = useState("");
     const [collegeCode, setCollegeCode] = useState("");
@@ -20,7 +26,18 @@ export default function EnrollmentForm() {
         message: "",
     });
 
-    // Fetch college list for the dropdown
+    // --- 1. Load Data & Reset Form on Open ---
+    useEffect(() => {
+        if (show) {
+            loadColleges();
+            // Reset form fields
+            setProgramName("");
+            setProgramCode("");
+            setCollegeCode("");
+            setAlert({ show: false, type: "info", message: "" });
+        }
+    }, [show]);
+
     const loadColleges = async () => {
         try {
             const res = await fetch("/api/colleges");
@@ -48,16 +65,7 @@ export default function EnrollmentForm() {
         }
     };
 
-    useEffect(() => {
-        loadColleges();
-        setAlert({
-            show: true,
-            type: "info",
-            message: "You are now in the Program Registration Form.",
-        });
-    }, []);
-
-    // Handle form submission
+    // --- 2. Handle Submission ---
     const handleRegisterProgram = async () => {
         if (!programCode || !programName || !collegeCode) {
             setAlert({
@@ -81,17 +89,15 @@ export default function EnrollmentForm() {
 
             const data = await res.json();
 
-            setAlert({
-                show: true,
-                type: data.success ? "success" : "danger",
-                message: data.message,
-            });
-
             if (data.success) {
-                // Reset form on success
-                setProgramCode("");
-                setProgramName("");
-                setCollegeCode("");
+                setAlert({ show: true, type: "success", message: data.message });
+                // Delay closing slightly so user sees success message
+                setTimeout(() => {
+                    onSuccess();
+                    handleClose();
+                }, 1000);
+            } else {
+                setAlert({ show: true, type: "danger", message: data.message });
             }
         } catch (error) {
             setAlert({
@@ -103,45 +109,53 @@ export default function EnrollmentForm() {
     };
 
     return (
-        <div className="registerCollege-form-page">
-            <HeaderToolbar
-                leftText="Program Registration Form"
-                rightButtons={[
-                    { label: "Register Program", onClick: handleRegisterProgram, className: "btn-progress" },
-                ]}
-            />
+        <Modal show={show} onHide={handleClose} backdrop="static" centered size="lg">
+            <Modal.Header closeButton>
+                <Modal.Title>Register New Program</Modal.Title>
+            </Modal.Header>
 
-            <AlertBanner
-                message={alert.message}
-                type={alert.type}
-                show={alert.show}
-                onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
-            />
-
-            <FormHolder>
-                <InputForm
-                    labels={["Program Name"]}
-                    value={programName}
-                    onChange={(_, val) => setProgramName(val)}
-                    pattern={/^(?!\s*$).+/}
-                    patternMessage="Program Name cannot be empty"
+            <Modal.Body>
+                <AlertBanner
+                    message={alert.message}
+                    type={alert.type}
+                    show={alert.show}
+                    onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
                 />
 
-                <InputForm
-                    labels={["Program Code"]}
-                    value={programCode}
-                    onChange={(_, val) => setProgramCode(val)}
-                    pattern={/^(?!\s*$).+/}
-                    patternMessage="Program Code cannot be empty"
-                />
+                <FormHolder>
+                    <InputForm
+                        labels={["Program Code"]}
+                        value={programCode}
+                        onChange={(_, val) => setProgramCode(val)}
+                        pattern={/^(?!\s*$).+/}
+                        patternMessage="Program Code cannot be empty"
+                    />
 
-                <SelectForm
-                    label="Linked College Code"
-                    options={collegeOptions}
-                    value={collegeCode}
-                    onChange={setCollegeCode}
-                />
-            </FormHolder>
-        </div>
+                    <InputForm
+                        labels={["Program Name"]}
+                        value={programName}
+                        onChange={(_, val) => setProgramName(val)}
+                        pattern={/^(?!\s*$).+/}
+                        patternMessage="Program Name cannot be empty"
+                    />
+
+                    <SelectForm
+                        label="Linked College"
+                        options={collegeOptions}
+                        value={collegeCode}
+                        onChange={setCollegeCode}
+                    />
+                </FormHolder>
+            </Modal.Body>
+
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleClose}>
+                    Cancel
+                </Button>
+                <Button variant="success" onClick={handleRegisterProgram}>
+                    Register Program
+                </Button>
+            </Modal.Footer>
+        </Modal>
     );
 }

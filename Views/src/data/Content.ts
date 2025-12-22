@@ -56,7 +56,7 @@ export interface Student {
 // ---------- Student Table Columns ----------
 const studentColumnHelper = createColumnHelper<Student>();
 
-export const getStudentColumns = (onUpdate: (id: string) => void, onDelete: (id: string) => void) => [
+export const getStudentColumns = (onUpdate: (id: string) => void) => [
     studentColumnHelper.accessor("imagePath", {
         header: "Photo",
         cell: (info) => {
@@ -118,11 +118,7 @@ export const getStudentColumns = (onUpdate: (id: string) => void, onDelete: (id:
                 createElement("button", { 
                     className: "btn btn-sm btn-primary", 
                     onClick: () => onUpdate(student.id) 
-                }, "Update"),
-                createElement("button", { 
-                    className: "btn btn-sm btn-danger", 
-                    onClick: () => onDelete(student.id) 
-                }, "Delete")
+                }, "Update")
             );
         }
     })
@@ -136,7 +132,9 @@ export interface Program {
 }
 
 const programColumnHelper = createColumnHelper<Program>();
-export const programColumns = [
+
+// CHANGED: Now a function that accepts onUpdate and returns columns
+export const getProgramColumns = (onUpdate: (code: string) => void) => [
     programColumnHelper.accessor("programName", {
         header: "Program Name",
         cell: (info) => createElement("p", {className: "m-0 p-2"}, info.getValue()),
@@ -149,7 +147,23 @@ export const programColumns = [
         header: "College Name",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
-]
+    // Added Actions column
+    programColumnHelper.display({
+        id: "actions",
+        header: "Actions",
+        cell: (info) => {
+            const program = info.row.original;
+            return createElement(
+                "div",
+                { className: "d-flex gap-2 justify-content-start" },
+                createElement("button", { 
+                    className: "btn btn-sm btn-primary", 
+                    onClick: () => onUpdate(program.programCode) 
+                }, "Update")
+            );
+        }
+    })
+];
 
 // ---------- College Data Types ----------
 export interface College {
@@ -160,7 +174,6 @@ export interface College {
 // ---------- College Table Columns ----------
 const collegeColumnHelper = createColumnHelper<College>();
 
-// CHANGED: Only accepts 'onUpdate'. Delete is now handled inside the Update Modal.
 export const getCollegeColumns = (onUpdate: (code: string) => void) => [
     collegeColumnHelper.accessor("collegeName", {
         header: "College Name",
@@ -170,7 +183,6 @@ export const getCollegeColumns = (onUpdate: (code: string) => void) => [
         header: "College Code",
         cell: (info) => createElement("p", { className: "m-0 p-2" }, info.getValue()),
     }),
-    // CHANGED: Only renders the Update button
     collegeColumnHelper.display({
         id: "actions",
         header: "Actions",

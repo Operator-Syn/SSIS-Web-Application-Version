@@ -116,7 +116,7 @@ export default function StudentDataPage() {
              { label: "Delete", variant: "danger", onClick: () => executeDelete(id), closeOnClick: true }], "Confirm Deletion");
     }, [showAlert, executeDelete]);
 
-    const columns = useMemo(() => getStudentColumns(handleUpdate, handleDeleteClick), [handleUpdate, handleDeleteClick]);
+    const columns = useMemo(() => getStudentColumns(handleUpdate), [handleUpdate, handleDeleteClick]);
 
     const placeholders = useMemo(() => {
         return Array.from({ length: pagination.pageSize }).map((_, i) => ({

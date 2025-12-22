@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useState } from "react";
-import AlertBanner from "../../alertBanner/AlertBanner"; // same component you use in forms
+import AlertBanner from "../../alertBanner/AlertBanner";
 
 export default function HomePage() {
     const location = useLocation();
@@ -59,7 +59,7 @@ export default function HomePage() {
                             const data = await response.json();
 
                             if (data.success) {
-                                window.location.href = "/login"; // forces refresh so NavBar hides
+                                window.location.href = "/login";
                             } else {
                                 showAlert("danger", data.message || "Logout failed.");
                             }
@@ -77,9 +77,8 @@ export default function HomePage() {
 
     const cards = [
         { title: "Student Information", path: "/student/information" },
-        { title: "Enroll", path: "/student/enroll" },
-        { title: "Update", path: "/student/update" },
-        { title: "Management", path: "/management" },
+        { title: "College Information", path: "/colleges" },
+        { title: "Programs Information", path: "/programs" },
     ];
 
     return (
@@ -93,9 +92,9 @@ export default function HomePage() {
                 buttons={alert.buttons}
             />
 
-            <h1>Welcome to the Home Page</h1>
+            <h1 className="mb-4">Welcome to the Home Page</h1>
 
-            <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 my-4">
+            <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-5 justify-content-center">
                 {cards.map((card) => {
                     const isActive = location.pathname === card.path;
                     return (
@@ -105,8 +104,9 @@ export default function HomePage() {
                                     className={`card h-100 shadow-sm ${isActive ? "current" : ""}`}
                                     role="button"
                                 >
-                                    <div className="card-body d-flex align-items-center justify-content-center">
-                                        <h5 className="card-title">{card.title}</h5>
+                                    {/* Reduced minHeight and added p-3 for smaller size */}
+                                    <div className="card-body d-flex align-items-center justify-content-center p-3" style={{ minHeight: "100px" }}>
+                                        <h5 className="card-title m-0">{card.title}</h5>
                                     </div>
                                 </div>
                             </NavLink>
@@ -115,12 +115,11 @@ export default function HomePage() {
                 })}
             </div>
 
-            <div className="d-flex justify-content-end">
-                <button className="btn btn-danger btn-lg" onClick={handleLogout}>
+            <div className="d-flex justify-content-center">
+                <button className="btn btn-danger btn-lg px-5" onClick={handleLogout}>
                     Logout
                 </button>
             </div>
-
         </div>
     );
 }

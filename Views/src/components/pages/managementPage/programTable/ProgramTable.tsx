@@ -1,12 +1,26 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { Button } from "react-bootstrap"; // Added Button import
 import InformationTable from "../../../dataTable/Table";
 import SearchBar from "../../../searchBar/SearchBar";
 import TableDropdown from "../../../dataTable/TableDropdown";
 import TablePagination from "../../../dataTable/TablePagination";
-import { sortByOptions, programColumns } from "../../../../data/Content";
+import { sortByOptions, getProgramColumns } from "../../../../data/Content";
+import UpdateProgramModal from "../programForm/UpdateProgram";
+import AddProgramModal from "../programForm/RegisterProgram";
 
 export default function ProgramTable() {
-    const [programsCache, setProgramsCache] = useState<{ [key: string]: any[] }>({});
+    const [programs, setPrograms] = useState<any[]>([]);
+
+    // --- Modal States ---
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+    const [showAddModal, setShowAddModal] = useState(false); // 1. New State for Add Modal
+
+    const [selectedProgram, setSelectedProgram] = useState<{
+        programCode: string,
+        programName: string,
+        collegeName: string
+    } | null>(null);
+
     const [searchQuery, setSearchQuery] = useState("");
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 });
     const [pageCount, setPageCount] = useState(0);
@@ -14,19 +28,14 @@ export default function ProgramTable() {
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    const getCacheKey = (pageIndex: number, pageSize: number) => `${pageIndex}_${pageSize}`;
-
-    const fetchPage = useCallback(async (pageIndex: number) => {
-        const cacheKey = getCacheKey(pageIndex, pagination.pageSize);
-        if (programsCache[cacheKey]) return;
-
+    const fetchPage = useCallback(async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams({
-                order_by: "program_name", // sort by program_name by default
+                order_by: "program_name",
                 direction: direction,
                 limit: String(pagination.pageSize),
-                offset: String(pageIndex * pagination.pageSize),
+                offset: String(pagination.pageIndex * pagination.pageSize),
             });
             if (searchQuery) params.append("q", searchQuery);
 
@@ -40,23 +49,22 @@ export default function ProgramTable() {
                 collegeName: p.college_name,
             }));
 
-            setProgramsCache(prev => ({ ...prev, [cacheKey]: mapped }));
+            setPrograms(mapped);
             setTotalCount(data.totalCount);
             setPageCount(Math.ceil(data.totalCount / pagination.pageSize));
         } catch (err) {
             console.error("Error fetching programs:", err);
+            setPrograms([]);
         } finally {
             setLoading(false);
         }
-    }, [pagination.pageSize, direction, searchQuery, programsCache]);
+    }, [pagination.pageIndex, pagination.pageSize, direction, searchQuery]);
 
     useEffect(() => {
-        fetchPage(pagination.pageIndex);
-        fetchPage(pagination.pageIndex + 1); // prefetch next
-    }, [pagination.pageIndex, pagination.pageSize, fetchPage]);
+        fetchPage();
+    }, [fetchPage]);
 
     useEffect(() => {
-        setProgramsCache({});
         setPagination(prev => ({ ...prev, pageIndex: 0 }));
     }, [searchQuery, direction, pagination.pageSize]);
 
@@ -64,27 +72,67 @@ export default function ProgramTable() {
         setSearchQuery(query);
     }, []);
 
-    const currentCacheKey = getCacheKey(pagination.pageIndex, pagination.pageSize);
-    const currentPageData = programsCache[currentCacheKey] ?? [];
+    // --- Connection Logic ---
+    const handleUpdate = useCallback((code: string) => {
+        const program = programs.find(p => p.programCode === code);
+        if (program) {
+            setSelectedProgram(program);
+            setShowUpdateModal(true);
+        }
+    }, [programs]);
+
+    const columns = useMemo(() =>
+        getProgramColumns(handleUpdate),
+        [handleUpdate]);
 
     return (
         <div className="program-data-page">
-            {/* Filters Row */}
-            <div className="d-flex flex-column flex-md-row gap-3 mb-3">
-                <SearchBar
-                    onSearch={handleSearch}
-                    placeholder="Search by Program Code, Program Name, or College..."
-                />
+            {/* --- Modals --- */}
+            <UpdateProgramModal
+                show={showUpdateModal}
+                handleClose={() => setShowUpdateModal(false)}
+                program={selectedProgram}
+                onSuccess={fetchPage}
+            />
 
-                <TableDropdown
-                    buttonText="Sort Direction:"
-                    items={sortByOptions.map(opt => ({ label: opt.label }))}
-                    value={sortByOptions.find(opt => opt.value === direction)?.label}
-                    onSelect={label => {
-                        const selected = sortByOptions.find(opt => opt.label === label);
-                        if (selected) setDirection(selected.value);
-                    }}
-                />
+            {/* 2. Render Add Modal */}
+            <AddProgramModal
+                show={showAddModal}
+                handleClose={() => setShowAddModal(false)}
+                onSuccess={fetchPage}
+            />
+
+            {/* Filters Row */}
+            <div className="d-flex flex-column flex-md-row gap-3 mb-3 justify-content-between align-items-center">
+                <div className="flex-grow-1">
+                    <SearchBar
+                        onSearch={handleSearch}
+                        placeholder="Search by Program Code, Program Name, or College..."
+                    />
+                </div>
+
+                <div className="d-flex gap-2 shrink-0">
+
+                    <TableDropdown
+                        buttonText="Sort Direction:"
+                        items={sortByOptions.map(opt => ({ label: opt.label }))}
+                        value={sortByOptions.find(opt => opt.value === direction)?.label}
+                        onSelect={label => {
+                            const selected = sortByOptions.find(opt => opt.label === label);
+                            if (selected) setDirection(selected.value);
+                        }}
+                    />
+
+                    {/* 3. Add Button */}
+                    <Button
+                        variant="success"
+                        onClick={() => setShowAddModal(true)}
+                        className="d-flex align-items-center"
+                    >
+                        Register Program
+                    </Button>
+
+                </div>
             </div>
 
             {/* Table */}
@@ -92,8 +140,8 @@ export default function ProgramTable() {
                 <p>Loading programs...</p>
             ) : (
                 <InformationTable
-                    data={currentPageData}
-                    columns={programColumns}
+                    data={programs}
+                    columns={columns}
                     pageIndex={pagination.pageIndex}
                     pageSize={pagination.pageSize}
                     totalCount={totalCount}
